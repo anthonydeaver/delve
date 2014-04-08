@@ -2,102 +2,55 @@
 	<head>
 		<style>
 			//#editor { display: none; }
-			#roomList { display: none; }
+			//#roomList { display: none; }
 		</style>
 		<script src="http://code.jquery.com/jquery-2.1.0.min.js" type="text/javascript"></script>
-		<script>
-/*
-			$( document ).ready(function() {
-				var rooms = [];
-				function parseRooms(data) {
-					data = decodeURIComponent(data);
-					$('#selector').hide();
-					$('#roomList').show();
-					$('#editor').show();
-
-					rooms = JSON.parse(data).rooms;
-					console.log('r: ', rooms);
-					for (var i = rooms.length - 1; i >= 0; i--) {
-						console.log('room: ' , rooms[i].name);
-						$('#roomList div').append($('<li />').attr('id',i).text(rooms[i].name))
-					};
-					$( "#results" ).text( data );
-				}
-				//Load existing
-				$('#files').on('change', function(evt) {
-					console.log('selected');
-					var files = evt.target.files;
-					var contents;
-					for (var i = 0, f; f = files[i]; i++) {
-						var reader = new FileReader();
-						reader.onload = function(e) {
-							contents = e.target.result;
-						}
-						reader.onloadend = function() {
-							parseRooms(contents);	
-						}
-						reader.readAsText(f);
-					}
-
-				})
-			    console.log( "ready!" );
-			    $('#roomMaker').on('submit', function(e) {
-			    	e.preventDefault();
-			    	// e.stopPropagation();
-			    	// console.log('e: ', e);
-			    	var str = $( this ).serialize();
-			    	var t = queryToObj(str);
-			    	t.name = t.name.replace(/\W/g,'_');
-			    	t.name = t.name.replace(/\+/g,' ');
-
-			    	// Set Defaults
-			    	t.hasMonster = t.hasMonster || false;
-			    	t.hasTreasure = t.hasTreasure || false;
-
-			    	rooms.push[t];
-			    	console.log('str: ', str);
-			    	console.log('rooms: ', rooms);
-			    	$( "#results" ).text( t );
-
-			    	var o = JSON.stringify({ "rooms" : rooms });
-			    	var b = new Blob([o],{type : 'text/json'});
-			    	saveAs(b, "rooms.json");
-		    		
-
-
-			    });
-			});
-*/			
-</script>
+	</head>
 <body>
 
     <section id="selector">
+    <fieldset>
         <label for="files">Select a file: </label>
         <input id="files" type="file" />
+    </fieldset>
         <br />
     </section>
 
     <section id="roomList">
+    Existing Rooms:
     	<div></div>
-    	<button>Add Room</button>
+    	<!-- <button>Add Room</button> -->
     </section>
+    <br />
 
 
     <section id="editor">
-		<form id="roomMaker" action="">
-				<label for="required">Required</label>
-			<fieldset id="required">
-				<label for="name">Room Name</label>
-				<input type="text" name="name"></input>
-			</fieldset>
-			<label for="name">Test Field</label>
-			<input type="text" name="test"></input> <br />
-			<label for="hasMonster">Has Monster?</label>
-			<input type="checkbox" name="hasMonster"><br />
-			<label for="hasTreasure">Has Treasure?</label>
-			<input type="checkbox" name="hasTreasure"><br />
-			<input type="submit" id="save" value="Save Room" />
-		</form>
+    	<fieldset>
+			<form id="roomMaker" action="">
+				<label for="name">Room Name</label><br />
+				<input type="text" name="name" /><br />
+				<label for="name">Short Code</label><br />
+				<input type="text" name="shortcode" /><br />
+				<label for="name">Description</label><br />
+				<textarea name="desc" style="width: 300px; height: 100px;"></textarea><br />
+				<label for="hasMonster">Has Monster?</label>
+				<input type="checkbox" name="hasMonster"><br />
+				<label for="hasTreasure">Has Treasure?</label>
+				<input type="checkbox" name="hasTreasure" /><br />
+				Exits<br />
+				<label for="north">North</label>
+				<input type="checkbox" name="exits[]" value="north"/><br />
+				<label for="south">South</label>
+				<input type="checkbox" name="exits[]" value="south" /><br />
+				<label for="east">East</label>
+				<input type="checkbox" name="exits[]" value="east" /><br />
+				<label for="west">West</label>
+				<input type="checkbox" name="exits[]" value="west" /><br />
+				<input type="submit" id="create" value="Create Room" />
+			</form>
+		</fieldset>
+		<input type="submit" id="save" value="Save Rooms" />
+	</section>
 
 	<div id="results"></div>
 
