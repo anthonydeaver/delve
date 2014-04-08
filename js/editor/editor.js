@@ -7,15 +7,20 @@ var Editor = (function () {
         this._submitRoomConfig = function (e) {
             _this.onSubmitRoomConfig(e);
         };
+        this._form = document.getElementById('roomMaker');
+        this._rooms = [];
+        this.registerEvents();
     }
     Editor.prototype.parseRooms = function (data) {
         data = decodeURIComponent(data);
         $('#selector').hide();
+        $('#roomList').show();
+        $('#editor').show();
 
-        var rooms = JSON.parse(data).rooms;
-
-        for (var i = rooms.length - 1; i >= 0; i--) {
-            $('#roomList div').append($('<li />').attr('id', i).text(rooms[i].name));
+        this._rooms = JSON.parse(data).rooms;
+        console.log('rooms: ', this._rooms);
+        for (var i = this._rooms.length - 1; i >= 0; i--) {
+            $('#roomList div').append($('<li />').attr('id', i).text(this._rooms[i].name));
         }
         $("#results").text(data);
     };
@@ -31,46 +36,51 @@ var Editor = (function () {
         return obj;
     };
 
-    Editor.prototype.registerEvents = function () {
-        $('files').on('change', this._onFileChange);
-        $('#roomMaker').on('submit', this._submitRoomConfig);
-    };
-
     // Event Handlers
     Editor.prototype.onFileChange = function (evt) {
         console.log('selected');
+        var that = this;
         var files = evt.target.files;
         var contents;
+        console.log('parsing...');
         for (var i = 0, f; f = files[i]; i++) {
             var reader = new FileReader();
             reader.onload = function (e) {
                 contents = e.target.result;
             };
             reader.onloadend = function () {
-                this.parseRooms(contents);
+                that.parseRooms(contents);
             };
             reader.readAsText(f);
         }
     };
 
     Editor.prototype.onSubmitRoomConfig = function (e) {
+        console.log('submitting room');
         e.preventDefault();
 
         // e.stopPropagation();
-        // console.log('e: ', e);
-        var str = $(this).serialize();
+        var str = $('#roomMaker').serialize();
         var t = this.queryToObj(str);
-        t.id = t.name.replace(/\W/g, '_');
-        t.name = t.name.replace(/\+/g, ' ');
-        var rooms = { "rooms": [t] };
+        console.log('this: ', this);
+        t.name = t.name.replace(/\W/g, '_');
+        t['name'] = t['name'].replace(/\+/g, ' ');
 
-        var o = JSON.stringify(rooms);
+        // Set Defaults
+        t['hasMonster'] = t['hasMonster'] || false;
+        t['hasTreasure'] = t['hasTreasure'] || false;
+
+        this._rooms.push(t);
+
+        var o = JSON.stringify({ "rooms": this._rooms });
         var b = new Blob([o], { type: 'text/json' });
         saveAs(b, "rooms.json");
     };
 
-    Editor.prototype.init = function () {
-        this.registerEvents();
+    Editor.prototype.registerEvents = function () {
+        console.log('registering events');
+        $('#files').on('change', this._onFileChange);
+        $('#roomMaker #save').on('click', this._submitRoomConfig);
     };
     return Editor;
 })();
