@@ -1,4 +1,5 @@
 declare var $;
+declare var Utils;
 
 class Editor {
 
@@ -60,11 +61,15 @@ class Editor {
 		}
 	}
 
+
 	private onCreateRoom(e: any) {
     	e.preventDefault();
     	var required = ['name', 'desc'];
     	var str = $('#roomMaker').serialize();
+    	// clea form?
+    	Utils.resetForm($('#roomMaker'));
     	var t:any = this.queryToObj(str);
+    	// console.log('t: ', t);
     	var r:any = {};
     	// Check for empty required fields.
     	for (var x = 0; x < required.length; x++) {
@@ -90,8 +95,15 @@ class Editor {
     	}
 
     	// Set Defaults
-    	r.hasMonster = t.hasMonster || false;
-    	r.hasTreasure = t.hasTreasure || false;
+    	r.hasMonster = (t.hasMonster === "on");
+    	r.hasTreasure =(t.hasTreasure === "on");
+
+    	r.start = (t.start === "on");
+    	if(r.start) {
+    		for (var i = 0; i < this._rooms.length; i++) {
+    			this._rooms[i].start = false;
+    		}
+    	}
 
     	this._rooms.push(r);
 

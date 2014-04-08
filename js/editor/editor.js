@@ -65,7 +65,11 @@ var Editor = (function () {
         e.preventDefault();
         var required = ['name', 'desc'];
         var str = $('#roomMaker').serialize();
+
+        // clea form?
+        Utils.resetForm($('#roomMaker'));
         var t = this.queryToObj(str);
+        console.log('t: ', t);
         var r = {};
 
         for (var x = 0; x < required.length; x++) {
@@ -92,8 +96,15 @@ var Editor = (function () {
         }
 
         // Set Defaults
-        r.hasMonster = t.hasMonster || false;
-        r.hasTreasure = t.hasTreasure || false;
+        r.hasMonster = (t.hasMonster === "on");
+        r.hasTreasure = (t.hasTreasure === "on");
+
+        r.start = (t.start === "on");
+        if (r.start) {
+            for (var i = 0; i < this._rooms.length; i++) {
+                this._rooms[i].start = false;
+            }
+        }
 
         this._rooms.push(r);
 
