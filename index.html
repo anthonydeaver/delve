@@ -59,6 +59,22 @@
 		</section>
 	</body>
 		<script>
-			var $delve = new Engine();
+			var urlParams;
+			var crunch = function () {
+				console.log('crunching');
+			    var match,
+			        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+			        search = /([^&=]+)=?([^&]*)/g,
+			        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+			        query  = window.location.search.substring(1);
+
+			    urlParams = {};
+			    while (match = search.exec(query))
+			       urlParams[decode(match[1])] = decode(match[2]);
+			    
+			};
+			crunch();
+			console.log('params: ', urlParams);
+			var $delve = new Engine(urlParams);
 		</script>
 	</html>

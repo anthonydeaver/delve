@@ -6,6 +6,9 @@ declare var $;
 
 
 class Engine {
+	private _mappings: any = {
+		'0001': 'haunted_mansion'
+	};
 	private _rooms: any;
 	private _activeRoom: string;
 	private _player: Player;
@@ -26,9 +29,9 @@ class Engine {
 
 	}
 
-	constructor() {
+	constructor(o) {
 		this._player = new Player();
-		this._roomManager = new Rooms(this);
+		this._roomManager = new Rooms(this, o.world);
 		this._map = new DelveMap();
 		this._player.dumpStats();
 

@@ -4,10 +4,13 @@
 /// <reference path="DelveMap.ts" />
 
 var Engine = (function () {
-    function Engine() {
+    function Engine(o) {
+        this._mappings = {
+            '0001': 'haunted_mansion'
+        };
         this._version = '0.0.1';
         this._player = new Player();
-        this._roomManager = new Rooms(this);
+        this._roomManager = new Rooms(this, o.world);
         this._map = new DelveMap();
         this._player.dumpStats();
 
