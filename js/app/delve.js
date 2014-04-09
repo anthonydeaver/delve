@@ -1,21 +1,23 @@
+//declare var decodeURIComponent;
 var Delve = (function () {
     function Delve() {
         this._version = '0.0.1';
         // Temp
         this._d = ['north'];
-        this._player = new Player();
-        this._player.dumpStats();
-
+        //this._player = new Player();
+        //this._player.dumpStats();
         // $.getJSON("rooms.json", function(json) {
         //     console.log(json); // this will show the info it in firebug console
         // });
         // temp
-        var data = { "rooms": [{ "name": "Wide+Room", "short_code": "wide_room", "desc": "This+is+a+wide+room", "exits": ["north", "east"], "hasMonster": false, "hasTreasure": true, "start": false }, { "name": "Kitchen", "short_code": "kitchen", "desc": "I+wouldn'r+eat+anything+here", "exits": ["south", "east", "west"], "hasMonster": true, "hasTreasure": false, "start": false }, { "name": "Bedroom", "short_code": "bedroom", "desc": "Where+monsters+sleep.", "exits": [], "hasMonster": true, "hasTreasure": false, "start": false }, { "name": "Shower", "short_code": "shower", "desc": "Because+you've+probably+wet+yourself", "exits": [], "hasMonster": false, "hasTreasure": true, "start": false }, { "name": "Dining+Room", "short_code": "dining_room", "desc": "Monsters+have+to+eat+somewhere", "exits": [], "hasMonster": true, "hasTreasure": false, "start": false }, { "name": "Foyer", "short_code": "foyer", "desc": "This+is+where+it+all+goes+downhill.", "exits": [], "hasMonster": false, "hasTreasure": false, "start": true }] };
-
-        //data = decodeURIComponent(data);
+        var data1 = '{"rooms":{"hallway":{"name":"Hallway","short_code":"hallway","desc":"Standard+hallway.","exits":["north","south","east"],"hasMonster":false,"hasTreasure":false,"start":false},"foyer":{"name":"Foyer","short_code":"foyer","desc":"This+is+where+it+starts.","exits":["north","east","west"],"hasMonster":false,"hasTreasure":false,"start":true},"study":{"name":"Study","short_code":"study","desc":"No+Ms.+Scarlet!","exits":["south","east"],"hasMonster":true,"hasTreasure":true,"start":false},"library":{"name":"Library","short_code":"library","desc":"Books+galore%2C+no+candlesticks.","exits":["south","east","west"],"hasMonster":false,"hasTreasure":true,"start":false},"office":{"name":"Office","short_code":"office","desc":"Taking+care+of+business.","exits":["north","east"],"hasMonster":true,"hasTreasure":false,"start":false}}}';
+        data1 = decodeURIComponent(data1);
+        var data = JSON.parse(data1);
+        console.log('data: ', data);
         this._rooms = data.rooms;
 
-        //this._rooms = Utils.shuffle(this._rooms);
+        this.registerEvents();
+
         this.getStart();
         console.log('active: ', this._activeRoom);
     }
@@ -96,13 +98,34 @@ var Delve = (function () {
         }
         this.getRoom();
     };
+    Delve.prototype.renderRoom = function (rm) {
+        var d = 'north';
+        $('#display header').html(rm.name);
+        $('#display article').html(rm.desc);
+
+        for (var x = 0; x < rm.exits.length; x++) {
+            $('[data-dir="' + rm.exits[x] + '"]').toggleClass('disabled');
+        }
+        console.log('north: ', $('[data-dir="' + d + '"]'));
+    };
+
     Delve.prototype.getStart = function () {
-        for (var i = 0; i < this._rooms.length; i++) {
+        for (var i in this._rooms) {
             if (this._rooms[i].start) {
                 this._activeRoom = this._rooms[i].short_code;
-                this._rooms.splice(i, 1);
+                this.renderRoom(this._rooms[i]);
+
+                //this._rooms.splice(i, 1);
+                delete this._rooms[i];
             }
         }
+        console.log('rooms: ', this._rooms);
+    };
+
+    Delve.prototype.registerEvents = function () {
+        $('#nav button').on('click', function (evt) {
+            console.log('dir: ', $(this).data('dir'));
+        });
     };
     return Delve;
 })();

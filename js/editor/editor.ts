@@ -1,5 +1,6 @@
 declare var $;
 declare var Utils;
+declare var saveAs;
 
 class Editor {
 
@@ -22,7 +23,10 @@ class Editor {
 
 	private listRooms() {
 		$('#roomList div').html('');
-		for (var i = this._rooms.length - 1; i >= 0; i--) {
+		//for (var i = this._rooms.length - 1; i >= 0; i--) {
+		for(var i in this._rooms) {
+			var rm = this._rooms[i];
+			console.log('rm: ', rm);
 		    $('#roomList div').append($('<li />').attr('id',i).text(this._rooms[i].name))
 		}
 	}
@@ -66,18 +70,19 @@ class Editor {
     	e.preventDefault();
     	var required = ['name', 'desc'];
     	var str = $('#roomMaker').serialize();
-    	// clea form?
-    	Utils.resetForm($('#roomMaker'));
     	var t:any = this.queryToObj(str);
-    	// console.log('t: ', t);
     	var r:any = {};
+    	var valid = true;
+
     	// Check for empty required fields.
     	for (var x = 0; x < required.length; x++) {
+    		console.log(required[x] + ": " + t[required[x]].length);
     		if (t[required[x]].length < 1) {  
-    			this.alert('Missing Required field');
-	    		// return;
+    			this.alert('Missing Required field: ' + required[x]);
+    			valid = false;
     		}
     	}
+    	if (!valid)  return;
 
     	r.name = t.name;
     	r.short_code = t.name.replace(/\W/g,'_').toLowerCase();
@@ -85,13 +90,14 @@ class Editor {
     	//r.short_code = r.name.toLowerCase()://replace(/\+/g,' ');
     	r.exits = [];
 
-    	var exits = $("input[name='exits[]']:checked");
+    	var exits = $("input[name='exits']:checked");
     	for( var e:any = 0; e < exits.length; e++) {
     		r.exits.push(exits[e].value);
     	}
 
     	if(r.exits.length === 0) {
-    		this.alert('Rooms required exits');
+    		this.alert('Rooms require exits');
+    		return;
     	}
 
     	// Set Defaults
@@ -105,25 +111,27 @@ class Editor {
     		}
     	}
 
-    	this._rooms.push(r);
+    	this._rooms[r.short_code] = r;
 
-    	console.log('rooms: ', this._rooms);
+    	Utils.resetForm($('#roomMaker'));
     	this.listRooms();
-
-    	// var o = JSON.stringify({ "rooms" : this._rooms });
-    	// var b = new Blob([o],{type : 'text/json'});
-    	// saveAs(b, "rooms.json");
 	}
 
 	private saveRoomsFile() {
     	var o = JSON.stringify({ "rooms" : this._rooms });
     	var b = new Blob([o],{type : 'text/json'});
     	saveAs(b, "rooms.json");
+    	this.tell('Rooms saved');
 	}
 	private alert(msg) {
-		console.log(msg);
-		$( "#results" ).append( $('<span />').html(msg) );
-
+		var alt = $('<div />').addClass('alert').html(msg);
+		$('#console').append(alt);
+		$('.alert').fadeOut( 5000 );	
+	}
+	private tell(msg) {
+		var alt = $('<div />').addClass('notice').html(msg);
+		$('#console').append(alt);
+		$('.notice').fadeOut( 5000 );	
 	}
 
 	private registerEvents() {
@@ -135,7 +143,7 @@ class Editor {
 
 	public constructor() {
 		this._form = document.getElementById('roomMaker');
-		this._rooms = [];
+		this._rooms = {};
 		this.registerEvents();
 	}
 }
