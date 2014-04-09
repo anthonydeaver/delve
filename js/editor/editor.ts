@@ -89,6 +89,7 @@ class Editor {
     	r.desc = t.desc;
     	//r.short_code = r.name.toLowerCase()://replace(/\+/g,' ');
     	r.exits = [];
+    	r.connections = {'east':'', 'north':'','west':'', 'south':''};
 
     	var exits = $("input[name='exits']:checked");
     	for( var e:any = 0; e < exits.length; e++) {
