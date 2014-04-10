@@ -1,7 +1,7 @@
 declare var $;
 class DelveMap {
-	private _xPos = 630;
-	private _yPos = 480;
+	private _xPos = 200;
+	private _yPos = 460;
 	public setStartPoint(rm) {
         var sp = $('<span />').attr('id', rm.short_code).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
         $('#map').append(sp);		
@@ -13,7 +13,7 @@ class DelveMap {
 		console.log('target: ', yPos);
         switch(direction) {
             case 'north':
-                yPos -= 50;
+                yPos -= 40;
                 break;
             case 'east':
                 xPos += 120;

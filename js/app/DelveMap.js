@@ -1,7 +1,7 @@
 var DelveMap = (function () {
     function DelveMap() {
-        this._xPos = 630;
-        this._yPos = 480;
+        this._xPos = 200;
+        this._yPos = 460;
     }
     DelveMap.prototype.setStartPoint = function (rm) {
         var sp = $('<span />').attr('id', rm.short_code).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
@@ -14,7 +14,7 @@ var DelveMap = (function () {
         console.log('target: ', yPos);
         switch (direction) {
             case 'north':
-                yPos -= 50;
+                yPos -= 40;
                 break;
             case 'east':
                 xPos += 120;
