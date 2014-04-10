@@ -9,6 +9,7 @@ class Rooms {
     private _deck: any;
     private _map: DelveMap;
     private _activeRoom: any;
+    private _currentGridSet = [0,0];
 
     private getStart() {
         for(var i in this._deck) {
@@ -20,13 +21,15 @@ class Rooms {
         }
         for(var k in this._deck) {
             // Little housekeeping
-            // this._deck[k].connections = {'east':'', 'north':'','west':'', 'south':''};
             this._deck[k].connections = {};
+            this._deck[k].gridCoord = [];
             this._rooms.push(k);
         }
         this._rooms = Utils.shuffle(this._rooms);
         // insert into map
         this._map.setStartPoint(this._activeRoom);
+        // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index for now)
+        this._activeRoom.gridCoord = this._currentGridSet;
         this.renderRoom(this._activeRoom);
     }
 
@@ -57,12 +60,30 @@ class Rooms {
             // already have a connection
             this.renderRoom(this._activeRoom.connections[dot]);
         } else {
-            rm = this.getRoom(dot);
+            rm = this.drawRoom(dot);
             this._activeRoom.connections[dot] = rm;
             rm.connections[this.getPolar(dot)] = this._activeRoom;
-            /* peusdo draw on the map */
+            /* draw on the map */
             this._map.addRoom(rm, dot, this._activeRoom.short_code);
 
+            // set map coordinates
+            switch(dot) {
+                case 'north' :
+                    this._currentGridSet[1]++;
+                    break;
+                case 'south' :
+                    this._currentGridSet[1]--;
+                    break;
+                case 'east' :
+                    this._currentGridSet[0]++;
+                    break;
+                case 'west' :
+                    this._currentGridSet[0]--;
+                    break;
+            }
+
+            rm.gridCoord = this._currentGridSet;
+            
             this.renderRoom(rm);
         }
     }
@@ -124,11 +145,13 @@ class Rooms {
 
     // Public Methods
     /*
+    'draw' as in draw from a deck...
+     
     - get room from top of 'deck'
     - if no matching entrance / exit, rotate 
     - no match: Error. !! Should never happen !!
      */
-    private getRoom(e: string) {
+    private drawRoom(e: string) {
         if(!this._rooms.length) {
             this._engine.throwError('no more rooms');
         }
@@ -186,5 +209,14 @@ class Rooms {
 
             that.registerEvents();
         });
+        //var data1 = '{"rooms":{"hallway":{"name":"Hallway","short_code":"hallway","desc":"Standard+hallway.","exits":["north","south","east"],"hasMonster":false,"hasTreasure":false,"start":false},"foyer":{"name":"Foyer","short_code":"foyer","desc":"This+is+where+it+starts.","exits":["north","east","west"],"hasMonster":false,"hasTreasure":false,"start":true},"study":{"name":"Study","short_code":"study","desc":"No+Ms.+Scarlet!","exits":["south","east"],"hasMonster":true,"hasTreasure":true,"start":false},"library":{"name":"Library","short_code":"library","desc":"Books+galore,+no+candlesticks.","exits":["south","east","west"],"hasMonster":false,"hasTreasure":true,"start":false},"office":{"name":"Office","short_code":"office","desc":"Taking+care+of+business.","exits":["north","east"],"hasMonster":true,"hasTreasure":false,"start":false},"empty_room":{"name":"Empty+Room","short_code":"empty_room","desc":"Nothing+here.+Seriously%2C+there+is+nothing.+Oh%2C+except+that...","exits":["north","south","west"],"hasMonster":true,"hasTreasure":false,"start":false}}}';
+        // data1 = Utils.proURIDecoder(data1);
+        // var data = JSON.parse(data1);
+        // this._deck = data.rooms;
+
+        // // Find the starting point of the delve
+        // this.getStart();
+
+        // this.registerEvents();
     }
 }
