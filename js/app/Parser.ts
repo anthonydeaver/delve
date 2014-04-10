@@ -58,6 +58,7 @@ class Parser {
 	}
 	public execute(val) {
 		var args = val.split(' ');
+		args.shift(); // removes the > character
 		var cmd = args.shift().toLowerCase();
 		console.log('cmd: ', cmd);
 		if(this._commands.indexOf(cmd) === -1) {

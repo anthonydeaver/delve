@@ -175,15 +175,16 @@ class Rooms {
     constructor(engine, locale) {
         this._engine = engine;
         this._map = new DelveMap();
-        // var data1 = engine.getFile(locale + '/rooms.json');
-        var data1 = '{"rooms":{"hallway":{"name":"Hallway","short_code":"hallway","desc":"Standard+hallway.","exits":["north","south","east"],"hasMonster":false,"hasTreasure":false,"start":false},"foyer":{"name":"Foyer","short_code":"foyer","desc":"This+is+where+it+starts.","exits":["north","east","west"],"hasMonster":false,"hasTreasure":false,"start":true},"study":{"name":"Study","short_code":"study","desc":"No+Ms.+Scarlet!","exits":["south","east"],"hasMonster":true,"hasTreasure":true,"start":false},"library":{"name":"Library","short_code":"library","desc":"Books+galore,+no+candlesticks.","exits":["south","east","west"],"hasMonster":false,"hasTreasure":true,"start":false},"office":{"name":"Office","short_code":"office","desc":"Taking+care+of+business.","exits":["north","east"],"hasMonster":true,"hasTreasure":false,"start":false},"empty_room":{"name":"Empty+Room","short_code":"empty_room","desc":"Nothing+here.+Seriously%2C+there+is+nothing.+Oh%2C+except+that...","exits":["north","south","west"],"hasMonster":true,"hasTreasure":false,"start":false}}}';
-        data1 = Utils.proURIDecoder(data1);
-        var data = JSON.parse(data1);
-        this._deck = data.rooms;
+        var that = this;
+        var data1;
+        $.getJSON(locale + '/rooms.json', function(data) {
+            console.log('JSON: ', data);
+            that._deck = data.rooms;
 
-        // Find the starting point of the delve
-        this.getStart();
+            // Find the starting point of the delve
+            that.getStart();
 
-        this.registerEvents();
+            that.registerEvents();
+        });
     }
 }

@@ -40,12 +40,70 @@
 				position: absolute;
 				height: 20px;
 			}
+
+/*			.modal {
+				width: 300px;
+				height: auto;
+				border: 1px solid black;
+				position: absolute;
+				top: 100px;
+				left: 269px;
+				background-color: white;
+				padding: 10px;
+			}
+
+*/
+			.modal #msg {
+				max-height: 210px;
+				overflow: auto;
+			}
+			.eventPanel {
+				background: none repeat scroll 0 0 white;
+				border: 2px solid transparent;
+				left: 250px;
+				padding: 5px;
+				position: absolute;
+				top: 90px;
+				width: 335px;
+				z-index: 20;
+			}
+			.eventPanel:before {
+				background-color: white;
+				opacity: 0.6;
+				content: " ";
+				height: 700px;
+				left: -252px;
+				position: absolute;
+				top: -100px;
+				width: 1024px;
+				z-index: -2;
+			}
+
+			.eventPanel:after {
+				position: absolute;
+				top: -2px;
+				left: -2px;
+				width: 100%;
+				height: 100%;
+				content: " ";
+				border: 2px solid black;
+				box-shadow: 5px 5px 5px #666666;
+				z-index: -2;
+			}
+
+			.button {
+				border: 1px solid black;
+				width: 100px;
+				text-align: center;
+				cursor: pointer;
+			}
 		</style>
 		<script src="http://code.jquery.com/jquery-2.1.0.min.js" type="text/javascript"></script>
 		<script src="js/app/delve.js" type="text/javascript"></script>
 		<script src="js/app/player.js" type="text/javascript"></script>
 		<script src="js/app/DelveMap.js" type="text/javascript"></script>
 		<script src="js/app/Parser.js" type="text/javascript"></script>
+		<script src="js/app/Modal.js" type="text/javascript"></script>
 		<script src="js/app/Rooms.js" type="text/javascript"></script>
 		<script src="js/app/utils.js" type="text/javascript"></script>
 	</head>
@@ -62,7 +120,7 @@
 			</section>
 			<section id="nav">
 			<textarea id="console" ></textarea><br />
-			<input id="command" type="text" />
+			<input id="command" type="text" value="> type commands here"/>
 				<!-- <table>
 					<tr>
 						<td colspan=2 align="center">
