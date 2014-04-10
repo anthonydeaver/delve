@@ -1,9 +1,11 @@
 /// <reference path="Utils.ts" />
 /// <reference path="delve.ts" />
+/// <reference path="DelveMap.ts" />
 var Rooms = (function () {
     function Rooms(engine, locale) {
         this._rooms = [];
         this._engine = engine;
+        this._map = new DelveMap();
 
         // var data1 = engine.getFile(locale + '/rooms.json');
         var data1 = '{"rooms":{"hallway":{"name":"Hallway","short_code":"hallway","desc":"Standard+hallway.","exits":["north","south","east"],"hasMonster":false,"hasTreasure":false,"start":false},"foyer":{"name":"Foyer","short_code":"foyer","desc":"This+is+where+it+starts.","exits":["north","east","west"],"hasMonster":false,"hasTreasure":false,"start":true},"study":{"name":"Study","short_code":"study","desc":"No+Ms.+Scarlet!","exits":["south","east"],"hasMonster":true,"hasTreasure":true,"start":false},"library":{"name":"Library","short_code":"library","desc":"Books+galore,+no+candlesticks.","exits":["south","east","west"],"hasMonster":false,"hasTreasure":true,"start":false},"office":{"name":"Office","short_code":"office","desc":"Taking+care+of+business.","exits":["north","east"],"hasMonster":true,"hasTreasure":false,"start":false},"empty_room":{"name":"Empty+Room","short_code":"empty_room","desc":"Nothing+here.+Seriously%2C+there+is+nothing.+Oh%2C+except+that...","exits":["north","south","west"],"hasMonster":true,"hasTreasure":false,"start":false}}}';
@@ -31,6 +33,9 @@ var Rooms = (function () {
             this._rooms.push(k);
         }
         this._rooms = Utils.shuffle(this._rooms);
+
+        // insert into map
+        this._map.setStartPoint(this._activeRoom);
         this.renderRoom(this._activeRoom);
     };
 
@@ -65,6 +70,10 @@ var Rooms = (function () {
             rm = this.getRoom(dot);
             this._activeRoom.connections[dot] = rm;
             rm.connections[this.getPolar(dot)] = this._activeRoom;
+
+            /* peusdo draw on the map */
+            this._map.addRoom(rm, dot, this._activeRoom.short_code);
+
             this.renderRoom(rm);
         }
     };
@@ -86,6 +95,7 @@ var Rooms = (function () {
         for (var x = 0; x < rm.exits.length; x++) {
             $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
         }
+
         this._activeRoom = rm;
     };
 
@@ -104,17 +114,19 @@ var Rooms = (function () {
     */
     Rooms.prototype.rotateRoomExits = function (rm) {
         for (var i = 0; i < rm.exits.length; i++) {
-            if (rm.exits[i] === 'north') {
-                rm.exits[i] == 'east';
-            }
-            if (rm.exits[i] === 'east') {
-                rm.exits[i] == 'south';
-            }
-            if (rm.exits[i] === 'south') {
-                rm.exits[i] == 'west';
-            }
-            if (rm.exits[i] === 'west') {
-                rm.exits[i] == 'north';
+            switch (rm.exits[i]) {
+                case 'north':
+                    rm.exits[i] = 'east';
+                    break;
+                case 'east':
+                    rm.exits[i] = 'south';
+                    break;
+                case 'south':
+                    rm.exits[i] = 'west';
+                    break;
+                case 'west':
+                    rm.exits[i] = 'north';
+                    break;
             }
         }
         return rm;
@@ -127,29 +139,31 @@ var Rooms = (function () {
     - no match: Error. !! Should never happen !!
     */
     Rooms.prototype.getRoom = function (e) {
+        if (!this._rooms.length) {
+            this._engine.throwError('no more rooms');
+        }
         var r = this._rooms.pop();
         var rm = this._deck[r];
-        console.log('before: ', rm);
+
         if (this.checkExits(rm, e)) {
             return rm;
         }
-
+        var that = this;
+        var cnt = 0;
         var recur = function (rm) {
-            rm = this.rotateRoomExits(rm);
-            if (this.checkExits(rm, e)) {
+            cnt++;
+            if (cnt >= 4) {
+                // We failed, give up
+                console.log('failed to fix room: ', rm.name);
+                return;
+            }
+            rm = that.rotateRoomExits(rm);
+            if (that.checkExits(rm, e)) {
                 return rm;
             } else {
                 recur(rm);
             }
         };
-
-        // Need to loop this...
-        // rm = this.rotateRoomExits(rm);
-        // console.log('after: ', rm);
-        // if(this.checkExits(rm, e)) {
-        //     return rm; //Good as is
-        // }
-        // return rm;
         return recur(rm);
     };
 
