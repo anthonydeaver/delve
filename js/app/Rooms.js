@@ -85,15 +85,17 @@ var Rooms = (function () {
     - possible fire a new room event and let the engine handle this?
     */
     Rooms.prototype.renderRoom = function (rm) {
+        $('#exits ul').html('');
         $('[data-dir]').each(function () {
             $(this).removeClass();
             $(this).addClass('disabled');
         });
         $('#display header').html(rm.name);
-        $('#display article').html(rm.desc);
+        $('#display #desc').html(rm.desc);
 
         for (var x = 0; x < rm.exits.length; x++) {
-            $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
+            // $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
+            $('#exits ul').append($('<li />').html(rm.exits[x]));
         }
 
         this._activeRoom = rm;
@@ -176,6 +178,10 @@ var Rooms = (function () {
             var dot = $(this).data('dir');
             that.onDirectionSelected(dot);
         });
+    };
+
+    Rooms.prototype.go = function (dot) {
+        this.onDirectionSelected(dot);
     };
     return Rooms;
 })();

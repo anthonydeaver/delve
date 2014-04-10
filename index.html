@@ -9,10 +9,23 @@
 				border-bottom: 1px solid gray; 
 				margin-bottom: 10px;
 			}
-			#display article {
-				min-height: 325px;
+			#display article#desc {
+				/*min-height: 280px;*/
 			}
 			#nav { width: 400px; }
+			#command {
+				width: 380px;
+				border: none;
+				background-color: #000;
+				color: white;
+				padding: 5px;
+				text-transform: uppercase;
+			}
+			#console {
+				resize: none;
+				width: 380px;
+				height: 100px;
+			}
 			#nav table { width: 300px; margin: 0 auto; }
 			#nav button { width: 100px; }
 			#nav button.disabled{ opacity: 0.4; }
@@ -32,6 +45,7 @@
 		<script src="js/app/delve.js" type="text/javascript"></script>
 		<script src="js/app/player.js" type="text/javascript"></script>
 		<script src="js/app/DelveMap.js" type="text/javascript"></script>
+		<script src="js/app/Parser.js" type="text/javascript"></script>
 		<script src="js/app/Rooms.js" type="text/javascript"></script>
 		<script src="js/app/utils.js" type="text/javascript"></script>
 	</head>
@@ -39,11 +53,17 @@
 		<section id="left">
 			<section id="display">
 				<header></header>
-				<article></article>
+				<article id="desc"></article>
+				<article id="exits">
+					Exits are:
+					<ul>
+					</ul>
+				</article>
 			</section>
 			<section id="nav">
-			<!-- <input id="command" type="text" /> -->
-				<table>
+			<textarea id="console" ></textarea><br />
+			<input id="command" type="text" />
+				<!-- <table>
 					<tr>
 						<td colspan=2 align="center">
 							<button class="disabled" data-dir="north">North</button>
@@ -62,7 +82,7 @@
 							<button class="disabled" data-dir="south">South</button>
 						</td>
 					</tr>
-				</table>
+				</table> -->
 			</section>
 		</section>
 		<section id="map">

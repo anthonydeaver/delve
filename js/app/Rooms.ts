@@ -73,15 +73,17 @@ class Rooms {
             - possible fire a new room event and let the engine handle this?
      */ 
     private renderRoom(rm) {
+        $('#exits ul').html('');
         $('[data-dir]').each(function(){
             $(this).removeClass();
             $(this).addClass('disabled');
         });
         $('#display header').html(rm.name);
-        $('#display article').html(rm.desc);
+        $('#display #desc').html(rm.desc);
 
         for (var x = 0; x < rm.exits.length; x++ ) {
-            $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
+            // $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
+            $('#exits ul').append($('<li />').html(rm.exits[x]));
         }
 
         this._activeRoom = rm;
@@ -126,7 +128,7 @@ class Rooms {
     - if no matching entrance / exit, rotate 
     - no match: Error. !! Should never happen !!
      */
-    public getRoom(e: string) {
+    private getRoom(e: string) {
         if(!this._rooms.length) {
             this._engine.throwError('no more rooms');
         }
@@ -164,6 +166,10 @@ class Rooms {
             var dot = $(this).data('dir'); // dot = 'direction of travel'
             that.onDirectionSelected(dot);
         });
+    }
+
+    public go(dot: string) {
+        this.onDirectionSelected(dot); 
     }
 
     constructor(engine, locale) {
