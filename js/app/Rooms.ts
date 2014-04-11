@@ -207,7 +207,6 @@ class Rooms {
         var that = this;
         var data1;
         $.getJSON(locale + '/rooms.json', function(data) {
-            console.log('JSON: ', data);
             that._deck = data.rooms;
 
             // Find the starting point of the delve
