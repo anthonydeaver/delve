@@ -51,6 +51,7 @@ var Parser = (function () {
             this.declareCantDo(cmd, dot);
         } else {
             this._engine.getRoomManager().go(dot);
+            // $event.triggerEvent('gotoRoom',dot);
         }
     };
     Parser.prototype.execute = function (val) {
@@ -67,7 +68,8 @@ var Parser = (function () {
                 this.processGo(args, cmd);
                 break;
             case 'help':
-                this.displayHelp();
+                //this.displayHelp();
+                $event.triggerEvent('displayHelp');
                 break;
         }
     };

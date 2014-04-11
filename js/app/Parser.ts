@@ -2,6 +2,7 @@
 /// <reference path="delve.ts" />
 
 declare var $;
+declare var $event;
 
 class Parser {
 	private _console;
@@ -53,6 +54,7 @@ class Parser {
 			this.declareCantDo(cmd,dot);
 		} else {
 			this._engine.getRoomManager().go(dot);
+			// $event.triggerEvent('gotoRoom',dot);
 		}
 
 	}
@@ -70,7 +72,8 @@ class Parser {
 				this.processGo(args, cmd);
 				break;
 			case 'help' :
-				this.displayHelp();
+				//this.displayHelp();
+				$event.triggerEvent('displayHelp');
 				break;
 		}
 
