@@ -26,7 +26,7 @@
 				/*min-height: 280px;*/
 			}
 			/*#nav { width: 400px; }*/
-			#command {
+			#command input{
 				width: 380px;
 				border: none;
 				background-color: white;
@@ -43,14 +43,21 @@
 /*			#nav table { width: 300px; margin: 0 auto; }
 			#nav button { width: 100px; }
 			#nav button.disabled{ opacity: 0.4; }
-*/			#left, #map, #nav, #nav header, #feedback { 
+*/			#left, #map, #nav, #nav header, #feedback, #command { 
 				float: left; 
 				background: rgba(255,255,255,0.3);
 				border-radius: 10px;
 				color: white;
 				border: 2px solid rgba(255,255,255,0.8);  
 				height: auto; 
-				position: relative;}
+				position: relative;
+			}
+			#command {
+				width: 400px;
+				height:50px;
+				clear: both;
+				margin-top: 25px;
+			}
 			section#left { 
 				width: 400px; 
 				background: rgba(255,255,255,0.3);
@@ -156,6 +163,7 @@
 				z-index:10000;
 				background-color: black;
 				color: green;
+				display: none;
 			}
 		</style>
 	</head>
@@ -173,7 +181,6 @@
 			<section id="nav2">
 				<div id="console" ></div>
 				 <!-- type commands here<br /> -->
-				<input id="command" type="text" value="> _"/>
 				<!-- <table>
 					<tr>
 						<td colspan=2 align="center">
@@ -196,6 +203,10 @@
 				</table> -->
 			</section>
 		</section>
+		<section id="command">
+		Enter Command:
+			<input id="" type="text" value="> _"/>
+		</section>			
 		<section id="map" class="draggable">
 		<!-- 25 'rows' high -->
 		<!-- ~20 pixels per 'row' -->

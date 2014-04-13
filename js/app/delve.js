@@ -34,14 +34,14 @@ var Engine = (function () {
         var that = this;
         $event.addListener('log', this._log);
         $event.addListener('displayHelp', this._onShowHelp);
-        $('#command').on('keypress', function (e) {
+        $('#command input').on('keypress', function (e) {
             if (e.which === 13) {
                 var val = $(this).val();
                 $(this).val('> ');
                 that._parser.execute(val);
             }
         });
-        $('#command').on('focus', function () {
+        $('#command input').on('focus', function () {
             $(this).val('> ');
         });
 
