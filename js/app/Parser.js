@@ -3,6 +3,7 @@
 
 var Parser = (function () {
     function Parser(engine) {
+        this._commandBuffer = [];
         this._commands = ['go', 'look', 'examine', 'take', 'use', 'help'];
         this.nojoy = [
             "I have no idea what your are asking.",
@@ -35,41 +36,66 @@ var Parser = (function () {
     };
     Parser.prototype.declareNoJoy = function () {
         this.nojoy = Utils.shuffle(this.nojoy);
-        var txt = $(this._console).val();
-        txt += '\r' + this.nojoy[0];
-        $(this._console).val(txt);
+
+        //var txt = $(this._console).val();
+        // txt += '\r' + this.nojoy[0];
+        // var txt = '>>> ' + this.nojoy[0];
+        // $(this._console).html(txt);
+        this._engine.throwError(this.nojoy[0]);
     };
 
-    Parser.prototype.displayHelp = function () {
+    Parser.prototype.handleShowCommand = function (args) {
     };
 
-    Parser.prototype.processGo = function (args, cmd) {
+    Parser.prototype.handleToggleCommand = function (args) {
+        var objects = ['map', 'controls', 'help'];
+        var toggle = args[0];
+        console.log('toggle: ', toggle);
+        if (objects.indexOf(toggle) === -1) {
+            this.declareNoJoy();
+        } else {
+            $event.triggerEvent('toggle' + toggle, args);
+        }
+    };
+
+    Parser.prototype.handleGoCommand = function (args, cmd) {
         var validDirections = ['north', 'south', 'east', 'west'];
         var dot = args[0];
         if (validDirections.indexOf(dot) === -1) {
-            //this.declareNoGo(dot);
             this.declareCantDo(cmd, dot);
         } else {
-            this._engine.getRoomManager().go(dot);
-            // $event.triggerEvent('gotoRoom',dot);
+            $event.triggerEvent('gotoRoom', dot);
         }
     };
     Parser.prototype.execute = function (val) {
+        $event.triggerEvent('log', 'parsing command');
         var args = val.split(' ');
         args.shift(); // removes the > character
+        this._commandBuffer.push(args.join(' '));
         var cmd = args.shift().toLowerCase();
-        console.log('cmd: ', cmd);
-        if (this._commands.indexOf(cmd) === -1) {
-            this.declareNoJoy();
-            return;
-        }
+
         switch (cmd) {
             case 'go':
-                this.processGo(args, cmd);
+                this.handleGoCommand(args, cmd);
                 break;
             case 'help':
-                //this.displayHelp();
                 $event.triggerEvent('displayHelp');
+                break;
+            case 'dump':
+                console.log('####################');
+                console.log('Command Buffer:');
+                console.log(this._commandBuffer);
+                console.log('####################');
+                $event.triggerEvent('dump');
+                break;
+            case 'show':
+                this.handleShowCommand(args);
+                break;
+            case 'toggle':
+                this.handleToggleCommand(args);
+                break;
+            default:
+                this.declareNoJoy();
                 break;
         }
     };

@@ -6,8 +6,8 @@ var Rooms = (function () {
         var _this = this;
         this._rooms = [];
         this._currentGridSet = [0, 0];
-        this._nothing = function (e) {
-            return _this.getStart();
+        this._gotoRoom = function (e) {
+            return _this.onDirectionSelected(e);
         };
         this._engine = engine;
         this._map = new DelveMap();
@@ -24,24 +24,25 @@ var Rooms = (function () {
     }
     Rooms.prototype.getStart = function () {
         for (var i in this._deck) {
+            this._deck[i].connections = {};
+            this._deck[i].name = this._deck[i].name.replace(/\+/g, ' ');
+            this._deck[i].desc = this._deck[i].desc.replace(/\+/g, ' ');
+            this._deck[i].gridCoord = [];
             if (this._deck[i].start) {
                 this._activeRoom = this._deck[i];
-                this._activeRoom.connections = {};
-                delete this._deck[i];
+                //delete this._deck[i];
+            } else {
+                // Little housekeeping
+                this._rooms.push(i);
             }
         }
-        for (var k in this._deck) {
-            // Little housekeeping
-            this._deck[k].connections = {};
-            this._deck[k].gridCoord = [];
-            this._rooms.push(k);
-        }
+
         this._rooms = Utils.shuffle(this._rooms);
 
         // insert into map
         this._map.setStartPoint(this._activeRoom);
 
-        // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index for now)
+        // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
         this._activeRoom.gridCoord = this._currentGridSet;
         this.renderRoom(this._activeRoom);
     };
@@ -58,7 +59,13 @@ var Rooms = (function () {
 
     Rooms.prototype.onDirectionSelected = function (dot) {
         console.log('direction: ', dot);
-        console.log('active room: ', this._activeRoom);
+        console.log('active room: ', this._activeRoom[dot]);
+
+        // Make sure the active room has that exit available
+        if (this._activeRoom.exits.indexOf(dot) === -1) {
+            this._engine.throwError("[r] You can't go that way.");
+            return;
+        }
         var rm;
 
         /*
@@ -207,11 +214,7 @@ var Rooms = (function () {
             that.onDirectionSelected(dot);
         });
 
-        $event.addListener('gotoRoom', this.go);
-    };
-
-    Rooms.prototype.go = function (dot) {
-        this.onDirectionSelected(dot);
+        $event.addListener('gotoRoom', this._gotoRoom);
     };
     return Rooms;
 })();

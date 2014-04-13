@@ -2,7 +2,19 @@ var DelveMap = (function () {
     function DelveMap() {
         this._xPos = 200;
         this._yPos = 460;
+        this.registerEvents();
     }
+    DelveMap.prototype.registerEvents = function () {
+        $event.triggerEvent('log', 'registering map events');
+        $event.addListener('togglemap', function () {
+            $('#map').toggle();
+            $(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map');
+        });
+        $('#BTN_MAP_TOGGLE').on('click', function () {
+            $('#map').toggle();
+            $(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map');
+        });
+    };
     DelveMap.prototype.setStartPoint = function (rm) {
         var sp = $('<span />').attr('id', rm.short_code).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
         $('#map').append(sp);

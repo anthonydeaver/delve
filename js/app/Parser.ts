@@ -6,6 +6,7 @@ declare var $event;
 
 class Parser {
 	private _console;
+	private _commandBuffer = [];
 	private _engine: Engine;
 	private _commands: any = ['go','look','examine','take','use', 'help'];
 	private nojoy = [
@@ -29,51 +30,80 @@ class Parser {
 	};
 
 	// Private methods
-	declareCantDo(cmd, args) {
+	private declareCantDo(cmd, args) {
 		this.cantDo[cmd] = Utils.shuffle(this.cantDo[cmd]);
 		var str = this.cantDo.go[0].replace(/{%s}/g, args);
 		var txt = $(this._console).val();
 		txt += '\r' + str;
 		$(this._console).val(txt);
 	}
-	declareNoJoy() {
+	private declareNoJoy() {
 		this.nojoy = Utils.shuffle(this.nojoy);
-		var txt = $(this._console).val();
-		txt += '\r' + this.nojoy[0];
-		$(this._console).val(txt);
+		//var txt = $(this._console).val();
+		// txt += '\r' + this.nojoy[0];
+		// var txt = '>>> ' + this.nojoy[0];
+		// $(this._console).html(txt);
+		this._engine.throwError(this.nojoy[0]);
 	}
 
-	displayHelp() {
+	private handleShowCommand(args: any) {
 	}
 
-	processGo(args, cmd) {	
+
+	private handleToggleCommand(args: any[]) {
+		var objects = ['map', 'controls', 'help'];
+		var toggle = args[0];
+		console.log('toggle: ', toggle);
+		if(objects.indexOf(toggle) === -1) {
+			this.declareNoJoy();
+		} else {
+			$event.triggerEvent('toggle' + toggle, args);
+		}
+	}
+
+	private handleGoCommand(args, cmd) {	
 		var validDirections = ['north', 'south','east','west'];
 		var dot = args[0];
 		if(validDirections.indexOf(dot) === -1) {
-			//this.declareNoGo(dot);
 			this.declareCantDo(cmd,dot);
 		} else {
-			this._engine.getRoomManager().go(dot);
-			// $event.triggerEvent('gotoRoom',dot);
+			$event.triggerEvent('gotoRoom',dot);
 		}
 
 	}
 	public execute(val) {
+		$event.triggerEvent('log', 'parsing command');
 		var args = val.split(' ');
 		args.shift(); // removes the > character
+		this._commandBuffer.push(args.join(' '));
 		var cmd = args.shift().toLowerCase();
-		console.log('cmd: ', cmd);
-		if(this._commands.indexOf(cmd) === -1) {
-			this.declareNoJoy();
-			return;
-		}
+		//console.log('cmd: ', cmd);
+		// if(this._commands.indexOf(cmd) === -1) {
+		// 	this.declareNoJoy();
+		// 	return;
+		// }
 		switch(cmd) {
 			case 'go' :
-				this.processGo(args, cmd);
+				this.handleGoCommand(args, cmd);
 				break;
 			case 'help' :
-				//this.displayHelp();
 				$event.triggerEvent('displayHelp');
+				break;
+			case 'dump' :
+				console.log('####################');
+				console.log('Command Buffer:');
+				console.log(this._commandBuffer);
+				console.log('####################');
+				$event.triggerEvent('dump');
+				break;
+			case 'show':
+				this.handleShowCommand(args);
+				break;
+			case 'toggle':
+				this.handleToggleCommand(args);
+				break;
+			default:
+				this.declareNoJoy();
 				break;
 		}
 

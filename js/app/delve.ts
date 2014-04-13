@@ -13,6 +13,7 @@ class Engine {
 		'0001': 'haunted_mansion'
 	};
 	private _rooms: any;
+	private _world: string;
 	private _activeRoom: string;
 	private _player: Player;
 	private _parser: Parser;
@@ -22,10 +23,12 @@ class Engine {
 	private _version:string =  '0.0.1';
 
 	private _onShowHelp = (e) => this.onShowHelp(e);
+	private _log = (m) => this.onLog(m);
 
 	// Private Methods
 	private registerEvents():void {
 		var that = this;
+		$event.addListener('log', this._log);
 		$event.addListener('displayHelp', this._onShowHelp);
 		$('#command').on('keypress', function(e) {
 			if(e.which === 13) {
@@ -38,8 +41,22 @@ class Engine {
 			$(this).val('> ');
 		});
 
-		// temp
+		
 		$('#temp').on('click', this._onShowHelp);
+		$('#nav header').on('click', function() {
+			var $nav = $(this).parent();
+			$nav.animate({
+				right: parseInt($nav.css('right'), 10) == 0 ? -325 : 0
+			})
+		});
+	}
+	private onLog(msg) {
+		console.log('msg:: ', msg);
+		var val = $('feedback').val();
+		console.log('val: ', val);
+		val = val + '\r' + msg;
+		$('#feedback').val(val);
+		$('#feedback').scrollTop($('#feedback')[0].scrollHeight);
 	}
 
 	private onShowHelp(e: any) {
@@ -60,7 +77,9 @@ class Engine {
 
 	// Public Methods
 	public throwError(msg):void {
-		throw('>>> Error: ', msg);		
+		var txt = '>>> ' + msg;
+		$('#console').html(txt);
+		// throw('>>> Error: ', msg);		
 	}
 
 	public getRoomManager() {
@@ -71,20 +90,22 @@ class Engine {
 
 	}
 
-	public displayHelp() {
+	private setupUI() {
+		$('body').css('background','url(/' + this._world + '/assets/background.jpg) no-repeat');
+		$('body').css('background-size','cover');
 
 	}
 
 	constructor(o) {
-		var t = this._mappings[o.world || '0001'];
+		this.onLog('this is a test');
+		this._world = this._mappings[o.world || '0001'];
 		this._player = new Player();
-		this._roomManager = new Rooms(this, t);
-		this._map = new DelveMap();
+		this._roomManager = new Rooms(this, this._world);
 		this._parser = new Parser(this);
-		this._player.dumpStats();
 
 		this.registerEvents();
 
+		this.setupUI();
 		// new Modal({title: 'Welcome to Delve!', msg: 'Welcome, be with you shortly...'});
 	}
 }
