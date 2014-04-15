@@ -14,6 +14,7 @@
 			body {
 				overflow: hidden;
 				padding:20px;
+				background-color: #000;
 			}
 			section { padding: 10px; }
 			#display header { 
@@ -22,8 +23,9 @@
 				border-bottom: 1px solid gray; 
 				margin-bottom: 10px;
 			}
-			#display article#desc {
+			#display #desc {
 				/*min-height: 280px;*/
+				margin-bottom: 25px;
 			}
 			/*#nav { width: 400px; }*/
 			#command input{
@@ -58,7 +60,7 @@
 				clear: both;
 				margin-top: 25px;
 			}
-			section#left { 
+			#left { 
 				width: 400px; 
 				background: rgba(255,255,255,0.3);
 				border-radius: 10px;
@@ -66,7 +68,15 @@
 				height: auto;
 				margin-right: 10px;
 			}
-			section#map { width: 500px; overflow:auto; padding: 0px; height: 502px; display: none;}
+			#map { 
+				width: 500px; 
+				overflow:auto; 
+				padding: 0px; 
+				height: 502px; 
+				display: none;
+				position: absolute;
+				left: 500px;
+			}
 			#map header {
 				background-color: rgba(255,255,255,0.2);
 				color: white;
@@ -96,22 +106,13 @@
 				left: -69px;
 				top:20px;
 			}
-
-/*			.modal {
-				width: 300px;
-				height: auto;
-				border: 1px solid black;
-				position: absolute;
-				top: 100px;
-				left: 269px;
-				background-color: white;
-				padding: 10px;
-			}
-
-*/
 			#modal #message {
 				height: 210px;
 				overflow: auto;
+			}
+
+			#modal .button {
+				border-color: black;
 			}
 			.eventPanel {
 				background: none repeat scroll 0 0 white;
@@ -148,7 +149,8 @@
 			}
 
 			.button {
-				border: 1px solid black;
+				clear: both;
+				border: 1px solid white;
 				width: 100px;
 				height: 20px;
 				text-align: center;
@@ -168,39 +170,18 @@
 		</style>
 	</head>
 	<body>
-		<section id="left" class="draggable">
+		<section id="left">
 			<section id="display">
 				<header></header>
 				<article id="desc"></article>
 				<article id="exits">
-					Exits are:
+					Available exits::
 					<ul>
 					</ul>
 				</article>
 			</section>
 			<section id="nav2">
 				<div id="console" ></div>
-				 <!-- type commands here<br /> -->
-				<!-- <table>
-					<tr>
-						<td colspan=2 align="center">
-							<button class="disabled" data-dir="north">North</button>
-						</td>
-					</tr>
-					<tr>
-						<td align="center">
-							<button class="disabled" data-dir="west">West</button>
-						</td>
-						<td align="center">
-							<button class="disabled" data-dir="east">East</button>
-						</td>
-					</tr>
-					<tr>
-						<td colspan=2 align="center">
-							<button class="disabled" data-dir="south">South</button>
-						</td>
-					</tr>
-				</table> -->
 			</section>
 		</section>
 		<section id="command">
@@ -282,6 +263,6 @@
     }
 })(jQuery);
 
-// $('section.draggable').drags();
+$('#map').drags();
 		</script>
 	</html>
