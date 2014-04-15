@@ -26,7 +26,7 @@ class Engine {
 	// Private Methods
 	private registerEvents():void {
 		var that = this;
-		$event.addListener('displayHelp', this._onShowHelp);
+		$event.bind('displayHelp', this._onShowHelp);
 		$('#command').on('keypress', function(e) {
 			if(e.which === 13) {
 				var val = $(this).val();

@@ -73,7 +73,7 @@ class Parser {
 				break;
 			case 'help' :
 				//this.displayHelp();
-				$event.triggerEvent('displayHelp');
+				$event.emit('displayHelp');
 				break;
 		}
 

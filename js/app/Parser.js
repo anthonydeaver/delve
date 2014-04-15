@@ -69,7 +69,7 @@ var Parser = (function () {
                 break;
             case 'help':
                 //this.displayHelp();
-                $event.triggerEvent('displayHelp');
+                $event.emit('displayHelp');
                 break;
         }
     };

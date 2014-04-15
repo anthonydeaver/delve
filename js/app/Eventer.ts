@@ -1,13 +1,13 @@
-class Eventer {
+class Events {
 	private _callbacks = {};
-	public addListener(name, callback) {
+	public bind(name, callback, context?) {
 	    if (!this._callbacks[name]) {
 	      this._callbacks[name] = [];
 	    }
-	    this._callbacks[name].push(callback);
+	    this._callbacks[name].push({'cb':callback, context:context});
 	}
 
-	public removeListener(name,callback) {
+	public unbind(name,callback) {
 		for (var i = 0; i < this._callbacks[name]; i++) {
 			if(this._callbacks[name][i] == callback) {
 				this._callbacks[name].splice(i,1);
@@ -16,10 +16,10 @@ class Eventer {
 		}
 	}
 
-	public triggerEvent(name, args?: any) {
+	public emit(name, args?: any) {
 		if(this._callbacks[name]) {
 			for (var i = 0; i < this._callbacks[name].length; i++) {
-				this._callbacks[name][i](args);
+				//this._callbacks[name][i](args, );
 			}
 		}
 	}
