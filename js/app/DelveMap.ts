@@ -2,6 +2,8 @@ declare var $;
 declare var $event;
 
 class DelveMap {
+	private _map: HTMLElement;
+
 	private registerEvents() {
 		$event.emit('log', 'registering map events');
 		$event.bind('togglemap', function() {
@@ -17,7 +19,7 @@ class DelveMap {
 		var xPos = 200;
 		var yPos = 460;
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $('#map').append(sp);
+        $(this._map).append(sp);
         this.addExits(yPos, xPos, rm);		
 	}
 	public addRoom(rm: any, direction: any, target) {
@@ -42,7 +44,7 @@ class DelveMap {
         }
 		console.log('target: ', yPos);
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $('#map').append(sp);		
+       	$(this._map).append(sp);		
         // Add in the direction markers
         // 
         this.addExits(yPos, xPos, rm);
@@ -61,12 +63,14 @@ class DelveMap {
 			if(rm.exits[x] === 'east') { left = xPos + 61; txt = '&mdash;'; }
 			marker.css('left', left);
 			marker.html(txt);
-			$('#map').append(marker);
+			$(this._map).append(marker);
         }
+        $('#map')[0].scrollTop = $('#map')[0].scrollheight;
 
 	}
 
 	constructor() {
+		this._map = $('#map article');
 		this.registerEvents();
 	}
 	

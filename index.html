@@ -31,13 +31,14 @@
 			</section>
 			<section id="command">
 			Enter Command:<br />
-				<input class="prompt" type="text" value=">"/><input id="" type="text" />
+				<input class="prompt" type="text" value=">"/><input class="input" type="text" />
 			</section>			
 		</div>
 		<!-- 25 'rows' high -->
 		<!-- ~20 pixels per 'row' -->
 		<section id="map" class="draggable">
 			<header>Map</header>
+			<article></article>
 		</section>
 		<section id="nav">
 			<header>controls</header>
@@ -46,7 +47,7 @@
 		<textarea id="console">
 		</textarea>
 	</body>
-		<script>
+		<script>$(".input").focus();
 			var urlParams;
 			var crunch = function () {
 			    var match,

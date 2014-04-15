@@ -1,5 +1,6 @@
 var DelveMap = (function () {
     function DelveMap() {
+        this._map = $('#map article');
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
@@ -17,7 +18,7 @@ var DelveMap = (function () {
         var xPos = 200;
         var yPos = 460;
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $('#map').append(sp);
+        $(this._map).append(sp);
         this.addExits(yPos, xPos, rm);
     };
     DelveMap.prototype.addRoom = function (rm, direction, target) {
@@ -42,7 +43,7 @@ var DelveMap = (function () {
         }
         console.log('target: ', yPos);
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $('#map').append(sp);
+        $(this._map).append(sp);
 
         // Add in the direction markers
         //
@@ -73,8 +74,9 @@ var DelveMap = (function () {
             }
             marker.css('left', left);
             marker.html(txt);
-            $('#map').append(marker);
+            $(this._map).append(marker);
         }
+        $('#map')[0].scrollTop = $('#map')[0].scrollheight;
     };
     return DelveMap;
 })();
