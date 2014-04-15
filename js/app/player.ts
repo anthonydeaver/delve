@@ -1,3 +1,5 @@
+declare var $event;
+
 class Player {
 	// Stats
 	private _hp: number = 0;
@@ -7,6 +9,8 @@ class Player {
 
 	// Movement
 	private _direction: string;
+
+	private _onDumpStats = (e) => this.dumpStats();
 
 	public getDirection() {
 		return this._direction;
@@ -21,13 +25,21 @@ class Player {
 		console.log('>>>>>>>');
 	}
 
+	private registerEvents() {
+		$event.addListener('dump', this._onDumpStats);
+	}
+
 	public move(d: string) {
 		this._direction = d;
 	}
+
+
 	constructor() {
 		this._hp = 20;
 		this._gold = 5;
 		this._skills = [];
 		this._treasure = [];
+
+		this.registerEvents();
 	}
 }
