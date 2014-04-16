@@ -200,7 +200,7 @@ class Rooms {
             that.onDirectionSelected(dot);
         });
 
-        $event.addListener('gotoRoom', this._gotoRoom);
+        $event.bind('gotoRoom', this._gotoRoom);
     }
 
     constructor(engine, locale) {

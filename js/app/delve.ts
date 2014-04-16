@@ -28,9 +28,9 @@ class Engine {
 	// Private Methods
 	private registerEvents():void {
 		var that = this;
-		$event.addListener('error', this.throwError);
-		$event.addListener('log', this._log);
-		$event.addListener('displayHelp', this._onShowHelp);
+		$event.bind('error', this.throwError);
+		$event.bind('log', this._log);
+		$event.bind('displayHelp', this._onShowHelp);
 		$('#command input').on('keypress', function(e) {
 			if(e.which === 13) {
 				var val = $(this).val();
@@ -56,8 +56,8 @@ class Engine {
 		var val = $('feedback').val();
 		console.log('val: ', val);
 		val = val + '\r' + msg;
-		$('#feedback').val(val);
-		$('#feedback').scrollTop($('#feedback')[0].scrollHeight);
+		// $('#feedback').val(val);
+		// $('#feedback').scrollTop($('#feedback')[0].scrollHeight);
 	}
 
 	private onShowHelp(e: any) {

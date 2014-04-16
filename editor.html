@@ -2,8 +2,8 @@
 	<head>
 		<title> Delve - Room Editor</title>
 		<style>
-			//#editor { display: none; }
-			//#roomList { display: none; }
+			#update { display: none; }
+			#roomList div {max-height: 100px; overflow: auto }
 			.alert {
 				padding: 5px 10px;
 				background-color: red;
@@ -41,7 +41,7 @@
 				<label for="name">Room Name</label><br />
 				<input type="text" name="name" /><br />
 				<label for="name">Short Code</label><br />
-				<input type="text" name="shortcode" /><br />
+				<input type="text" name="id" /><br />
 				<label for="name">Description</label><br />
 				<textarea name="desc" style="width: 300px; height: 100px;"></textarea><br />
 				<label for="hasMonster">Has Monster?</label>
@@ -61,10 +61,11 @@
 				<label for="start">Start game here?</label>
 				<input type="checkbox" name="start" /><br />
 				<br />
-				<input type="submit" id="create" value="Create Room" />
+				<input type="submit" id="save" value="Save Room" />
+				<input type="submit" id="clear" value="Clear" />
 			</form>
 		</fieldset>
-		<input type="submit" id="save" value="Save Rooms" />
+		<input type="submit" id="export" value="Export Rooms" />
 	</section>
 
 	<div id="results"></div>

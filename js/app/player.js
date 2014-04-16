@@ -30,7 +30,7 @@ var Player = (function () {
     };
 
     Player.prototype.registerEvents = function () {
-        $event.addListener('dump', this._onDumpStats);
+        $event.bind('dump', this._onDumpStats);
     };
 
     Player.prototype.move = function (d) {

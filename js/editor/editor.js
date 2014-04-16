@@ -5,7 +5,10 @@ var Editor = (function () {
             _this.onFileChange(e);
         };
         this._createRoom = function (e) {
-            _this.onCreateRoom(e);
+            _this.onSaveRoom(e);
+        };
+        this._updateRoom = function (e) {
+            _this.onUpdateRoom(e);
         };
         this._saveRooms = function (e) {
             _this.saveRoomsFile();
@@ -25,13 +28,38 @@ var Editor = (function () {
     };
 
     Editor.prototype.listRooms = function () {
+        var that = this;
         $('#roomList div').html('');
-
         for (var i in this._rooms) {
             var rm = this._rooms[i];
-            console.log('rm: ', rm);
-            $('#roomList div').append($('<li />').attr('id', i).text(this._rooms[i].name));
+            var li = $('<li />').attr('id', i).text(this._rooms[i].name);
+            li.append($('<a />').attr('href', '/').attr('id', this._rooms[i].id).html('[edit]'));
+            $('#roomList div').append(li);
+            $('#roomList a').on('click', function (e) {
+                e.preventDefault();
+                that.onEditRoom($(this).attr('id'));
+            });
         }
+    };
+
+    Editor.prototype.onEditRoom = function (id) {
+        var rm = this._rooms[id];
+        for (var k in rm) {
+            var f = $('#roomMaker [name="' + k + '"]');
+            f.val(rm[k]);
+            if (k == 'hasMonster' && rm[k] === true) {
+                $('#roomMaker [name="hasMonster"]').attr('checked', 'checked');
+            } else {
+                $('#roomMaker [name="hasMonster"]').removeAttr('checked');
+            }
+            if (k == 'hasTreasure' && rm[k] === true) {
+                $('#roomMaker [name="hasTreasure"]').attr('checked', 'checked');
+            } else {
+                $('#roomMaker [name="hasTreasure"]').removeAttr('checked');
+            }
+        }
+        $('#roomMaker #create').hide();
+        $('#roomMaker #update').show();
     };
 
     Editor.prototype.queryToObj = function (str) {
@@ -64,12 +92,16 @@ var Editor = (function () {
         }
     };
 
-    Editor.prototype.onCreateRoom = function (e) {
+    Editor.prototype.onUpdateRoom = function (e) {
+    };
+
+    Editor.prototype.onSaveRoom = function (e) {
         e.preventDefault();
         var required = ['name', 'desc'];
         var str = $('#roomMaker').serialize();
         var t = this.queryToObj(str);
-        var r = {};
+        var URID = t.name.replace(/\W/g, '_').toLowerCase();
+        var r = this._rooms[URID] || {};
         var valid = true;
 
         for (var x = 0; x < required.length; x++) {
@@ -82,11 +114,9 @@ var Editor = (function () {
         if (!valid)
             return;
 
-        r.name = t.name;
-        r.short_code = t.name.replace(/\W/g, '_').toLowerCase();
-        r.desc = t.desc;
-
-        //r.short_code = r.name.toLowerCase()://replace(/\+/g,' ');
+        r.name = t.name.replace(/\+/g, ' ');
+        r.id = URID;
+        r.desc = t.desc.replace(/\+/g, ' ');
         r.exits = [];
         r.connections = {};
         r.gridCoord = [];
@@ -112,7 +142,7 @@ var Editor = (function () {
             }
         }
 
-        this._rooms[r.short_code] = r;
+        this._rooms[r.id] = r;
 
         Utils.resetForm($('#roomMaker'));
         this.listRooms();
@@ -138,8 +168,12 @@ var Editor = (function () {
     Editor.prototype.registerEvents = function () {
         console.log('registering events');
         $('#files').on('change', this._onFileChange);
-        $('#roomMaker #create').on('click', this._createRoom);
-        $('#save').on('click', this._saveRooms);
+        $('#roomMaker #save').on('click', this._createRoom);
+        $('#roomMaker #clear').on('click', function (e) {
+            e.preventDefault();
+            Utils.resetForm($('#roomMaker'));
+        });
+        $('#export').on('click', this._saveRooms);
     };
     return Editor;
 })();

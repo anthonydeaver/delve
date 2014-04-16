@@ -214,7 +214,7 @@ var Rooms = (function () {
             that.onDirectionSelected(dot);
         });
 
-        $event.addListener('gotoRoom', this._gotoRoom);
+        $event.bind('gotoRoom', this._gotoRoom);
     };
     return Rooms;
 })();

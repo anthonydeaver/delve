@@ -26,7 +26,7 @@ class Player {
 	}
 
 	private registerEvents() {
-		$event.addListener('dump', this._onDumpStats);
+		$event.bind('dump', this._onDumpStats);
 	}
 
 	public move(d: string) {

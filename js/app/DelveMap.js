@@ -5,8 +5,8 @@ var DelveMap = (function () {
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
-        $event.triggerEvent('log', 'registering map events');
-        $event.addListener('togglemap', function () {
+        $event.emit('log', 'registering map events');
+        $event.bind('togglemap', function () {
             $('#map').toggle();
             $(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map');
         });

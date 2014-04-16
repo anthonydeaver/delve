@@ -43,7 +43,7 @@ class Parser {
 		// txt += '\r' + this.nojoy[0];
 		// var txt = '>>> ' + this.nojoy[0];
 		// $(this._console).html(txt);
-		$event.triggerEvent('error',this.nojoy[0]);
+		$event.emit('error',this.nojoy[0]);
 //		this._engine.throwError(this.nojoy[0]);
 	}
 
@@ -58,7 +58,7 @@ class Parser {
 		if(objects.indexOf(toggle) === -1) {
 			this.declareNoJoy();
 		} else {
-			$event.triggerEvent('toggle' + toggle, args);
+			$event.emit('toggle' + toggle, args);
 		}
 	}
 
@@ -68,12 +68,12 @@ class Parser {
 		if(validDirections.indexOf(dot) === -1) {
 			this.declareCantDo(cmd,dot);
 		} else {
-			$event.triggerEvent('gotoRoom',dot);
+			$event.emit('gotoRoom',dot);
 		}
 
 	}
 	public execute(val) {
-		$event.triggerEvent('log', 'parsing command');
+		$event.emit('log', 'parsing command');
 		var args = val.split(' ');
 		args.shift(); // removes the > character
 		this._commandBuffer.push(args.join(' '));
@@ -88,14 +88,14 @@ class Parser {
 				this.handleGoCommand(args, cmd);
 				break;
 			case 'help' :
-				$event.triggerEvent('displayHelp');
+				$event.emit('displayHelp');
 				break;
 			case 'dump' :
 				console.log('####################');
 				console.log('Command Buffer:');
 				console.log(this._commandBuffer);
 				console.log('####################');
-				$event.triggerEvent('dump');
+				$event.emit('dump');
 				break;
 			case 'show':
 				this.handleShowCommand(args);

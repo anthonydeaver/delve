@@ -5,8 +5,8 @@ class DelveMap {
 	private _xPos = 200;
 	private _yPos = 460;
 	private registerEvents() {
-		$event.triggerEvent('log', 'registering map events');
-		$event.addListener('togglemap', function() {
+		$event.emit('log', 'registering map events');
+		$event.bind('togglemap', function() {
 			$('#map').toggle();
 			$(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map')
 		});
