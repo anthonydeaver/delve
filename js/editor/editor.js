@@ -182,6 +182,12 @@ var Editor = (function () {
             Utils.resetForm($('#roomMaker'));
         });
         $('#export').on('click', this._saveRooms);
+        $('#roomMaker #add').on('click', function (e) {
+            e.preventDefault();
+            var item = $('<input />').attr('type', 'text').attr('name', 'item');
+            $(item).insertBefore($(this));
+            $('<br />').insertBefore($(this));
+        });
     };
     return Editor;
 })();
