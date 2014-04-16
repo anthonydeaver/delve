@@ -17,7 +17,7 @@ class Engine {
 	private _activeRoom: string;
 	private _player: Player;
 	private _parser: Parser;
-	private _map: DelveMap;
+	// private _map: DelveMap;
 	private _modal: Modal;
 	private _roomManager: Rooms;
 	private _version:string =  '0.0.1';
@@ -34,12 +34,12 @@ class Engine {
 		$('#command input').on('keypress', function(e) {
 			if(e.which === 13) {
 				var val = $(this).val();
-				$(this).val('> ');
+				$(this).val('');
 				that._parser.execute(val);
 			}
 		});
 		$('#command input').on('focus', function() {
-			$(this).val('> ');
+			$(this).val('');
 		});
 
 		
@@ -79,8 +79,8 @@ class Engine {
 	// Public Methods
 	public throwError(msg):void {
 		var txt = '>>> ' + msg;
-		$('#console').html(txt);
-		// throw('>>> Error: ', msg);		
+		//$('#console').html(txt);
+		throw('>>> Error: ', msg);		
 	}
 
 	public getRoomManager() {
@@ -105,8 +105,8 @@ class Engine {
 		// this._roomManager = new Rooms(this, this._world);
 		this._world = this._mappings[o.world || '0001'];
 		new Player();
-		new Parser(this);
-		new Rooms(this, this._world);
+		this._parser = new Parser(this);
+		new Rooms(this._world);
 
 		this.registerEvents();
 

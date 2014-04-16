@@ -4,14 +4,13 @@
 declare var $;
 class Rooms {
 
-    private _engine: Engine;
     private _rooms: any = [];
     private _deck: any;
     private _map: DelveMap;
     private _activeRoom: any;
     private _currentGridSet = [0,0];
 
-    private _gotoRoom = (e) => this.onDirectionSelected(e);
+    private _gotoRoom = (e) => { console.log('caught'); this.onDirectionSelected(e); }
 
     private getStart() {
         for(var i in this._deck) {
@@ -50,7 +49,7 @@ class Rooms {
         console.log('active room: ', this._activeRoom[dot]);
         // Make sure the active room has that exit available
         if(this._activeRoom.exits.indexOf(dot) === -1) {
-            this._engine.throwError("[r] You can't go that way.");
+            $event.emit('error', "[r] You can't go that way.");
             return;
         }
         var rm;
@@ -70,6 +69,7 @@ class Rooms {
             this.renderRoom(this._activeRoom.connections[dot]);
         } else {
             rm = this.drawRoom(dot);
+            if(!rm) { $event.emit('error','Failed to load new room!'); }
             this._activeRoom.connections[dot] = rm;
             rm.connections[this.getPolar(dot)] = this._activeRoom;
             /* draw on the map */
@@ -133,7 +133,9 @@ class Rooms {
         This rotates the rooms exits clockwise. North becomes East, East becomes South, etc...
      */
     private rotateRoomExits(rm) {
+        console.log('rotating');
         for (var i = 0; i < rm.exits.length; i++ ) {
+            console.log('loop: ', rm.exits[i]);
             switch(rm.exits[i]) {
                 case 'north':
                     rm.exits[i] = 'east';
@@ -162,10 +164,12 @@ class Rooms {
      */
     private drawRoom(e: string) {
         if(!this._rooms.length) {
-            this._engine.throwError('no more rooms');
+            $event.emit('error', 'no more rooms');
         }
         var r = this._rooms.pop();
+        console.log('r: ', r);
         var rm = this._deck[r];
+        console.log('rm: ', rm);
 
         if(this.checkExits(rm, e)) { 
             return rm; //Good as is
@@ -176,10 +180,11 @@ class Rooms {
             cnt++;
             if(cnt >= 4) { 
                 // We failed, give up    
-                console.log('failed to fix room: ', rm.name);
+                $event.emit('error', 'failed to fix room: ' + rm.name);
                 return; 
             } 
             rm = that.rotateRoomExits(rm);
+        console.log('rm-recur: ', cnt);
             if(that.checkExits(rm, e)) {
                 return rm;
             } else {
@@ -190,20 +195,19 @@ class Rooms {
     }
 
     private registerEvents() {
-        var that = this;
-        $('#nav button').on('click', function(evt) {
-            if($(this).hasClass('disabled')) {
-                return;
-            }
-            var dot = $(this).data('dir'); // dot = 'direction of travel'
-            that.onDirectionSelected(dot);
-        });
+        // var that = this;
+        // $('#nav button').on('click', function(evt) {
+        //     if($(this).hasClass('disabled')) {
+        //         return;
+        //     }
+        //     var dot = $(this).data('dir'); // dot = 'direction of travel'
+        //     that.onDirectionSelected(dot);
+        // });
 
         $event.bind('gotoRoom', this._gotoRoom);
     }
 
-    constructor(engine, locale) {
-        this._engine = engine;
+    constructor(locale) {
         this._map = new DelveMap();
         var that = this;
         var data1;

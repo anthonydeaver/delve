@@ -26,8 +26,8 @@ var Engine = (function () {
         // this._roomManager = new Rooms(this, this._world);
         this._world = this._mappings[o.world || '0001'];
         new Player();
-        new Parser(this);
-        new Rooms(this, this._world);
+        this._parser = new Parser(this);
+        new Rooms(this._world);
 
         this.registerEvents();
 
@@ -43,12 +43,12 @@ var Engine = (function () {
         $('#command input').on('keypress', function (e) {
             if (e.which === 13) {
                 var val = $(this).val();
-                $(this).val('> ');
+                $(this).val('');
                 that._parser.execute(val);
             }
         });
         $('#command input').on('focus', function () {
-            $(this).val('> ');
+            $(this).val('');
         });
 
         $('#temp').on('click', this._onShowHelp);
@@ -78,8 +78,8 @@ var Engine = (function () {
     // Public Methods
     Engine.prototype.throwError = function (msg) {
         var txt = '>>> ' + msg;
-        $('#console').html(txt);
-        // throw('>>> Error: ', msg);
+
+        throw ('>>> Error: ', msg);
     };
 
     Engine.prototype.getRoomManager = function () {

@@ -4,7 +4,8 @@ class Events {
 	    if (!this._callbacks[name]) {
 	      this._callbacks[name] = [];
 	    }
-	    this._callbacks[name].push({'cb':callback, context:context});
+	    // this._callbacks[name].push({'cb':callback, context:context});
+	    this._callbacks[name].push(callback);
 	}
 
 	public unbind(name,callback) {
@@ -19,7 +20,8 @@ class Events {
 	public emit(name, args?: any) {
 		if(this._callbacks[name]) {
 			for (var i = 0; i < this._callbacks[name].length; i++) {
-				//this._callbacks[name][i](args, );
+				console.log
+				this._callbacks[name][i](args);
 			}
 		}
 	}

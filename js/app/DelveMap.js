@@ -1,7 +1,5 @@
 var DelveMap = (function () {
     function DelveMap() {
-        this._xPos = 200;
-        this._yPos = 460;
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
@@ -16,11 +14,15 @@ var DelveMap = (function () {
         });
     };
     DelveMap.prototype.setStartPoint = function (rm) {
-        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
+        var xPos = 200;
+        var yPos = 460;
+        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
         $('#map').append(sp);
+        this.addExits(yPos, xPos, rm);
     };
     DelveMap.prototype.addRoom = function (rm, direction, target) {
         var t = $('#' + target);
+        var txt;
         var xPos = parseInt($(t).css('left'), 10);
         var yPos = parseInt($(t).css('top'), 10);
         console.log('target: ', yPos);
@@ -41,6 +43,38 @@ var DelveMap = (function () {
         console.log('target: ', yPos);
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
         $('#map').append(sp);
+
+        // Add in the direction markers
+        //
+        this.addExits(yPos, xPos, rm);
+    };
+
+    DelveMap.prototype.addExits = function (yPos, xPos, rm) {
+        var txt;
+        for (var x = 0; x < rm.exits.length; x++) {
+            var top = yPos, left = xPos;
+            var marker = $('<span />').addClass('direction ' + rm.exits[x]).css('border', 'none');
+            if (rm.exits[x] === 'north') {
+                top = yPos - 20;
+                txt = '|';
+            }
+            if (rm.exits[x] === 'south') {
+                top = yPos + 20;
+                txt = '|';
+            }
+            marker.css('top', top);
+            if (rm.exits[x] === 'west') {
+                left = xPos - 59;
+                txt = '&mdash;';
+            }
+            if (rm.exits[x] === 'east') {
+                left = xPos + 61;
+                txt = '&mdash;';
+            }
+            marker.css('left', left);
+            marker.html(txt);
+            $('#map').append(marker);
+        }
     };
     return DelveMap;
 })();

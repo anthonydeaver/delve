@@ -32,19 +32,20 @@ class Parser {
 	// Private methods
 	private declareCantDo(cmd, args) {
 		this.cantDo[cmd] = Utils.shuffle(this.cantDo[cmd]);
-		var str = this.cantDo.go[0].replace(/{%s}/g, args);
-		var txt = $(this._console).val();
-		txt += '\r' + str;
-		$(this._console).val(txt);
+		var str = this.cantDo.go[0].replace(/{%s}/g, args.join(' '));
+		this.updateConsole(str);
 	}
 	private declareNoJoy() {
 		this.nojoy = Utils.shuffle(this.nojoy);
-		//var txt = $(this._console).val();
-		// txt += '\r' + this.nojoy[0];
-		// var txt = '>>> ' + this.nojoy[0];
-		// $(this._console).html(txt);
-		$event.emit('error',this.nojoy[0]);
-//		this._engine.throwError(this.nojoy[0]);
+		this.updateConsole(this.nojoy[0]);
+	}
+
+	private updateConsole(msg) {
+		$(this._console).append('<br /><span>' + msg + '</span>');
+		$(this._console)[0].scrollTop = $(this._console)[0].scrollHeight;
+		// $('#feedback span').each(function() {
+		// 	console.log('this: ', $(this));
+		// });
 	}
 
 	private handleShowCommand(args: any) {
@@ -63,26 +64,22 @@ class Parser {
 	}
 
 	private handleGoCommand(args, cmd) {	
-		var validDirections = ['north', 'south','east','west'];
+		var validDirections = ['north', 'south','east','west', 'up', 'down'];
+		if(!args.length) { this.updateConsole('Where would you like to go?') ; return; }
 		var dot = args[0];
 		if(validDirections.indexOf(dot) === -1) {
 			this.declareCantDo(cmd,dot);
 		} else {
+			console.log('going: ', dot);
 			$event.emit('gotoRoom',dot);
 		}
 
 	}
 	public execute(val) {
 		$event.emit('log', 'parsing command');
+		this._commandBuffer.push(val);
 		var args = val.split(' ');
-		args.shift(); // removes the > character
-		this._commandBuffer.push(args.join(' '));
 		var cmd = args.shift().toLowerCase();
-		//console.log('cmd: ', cmd);
-		// if(this._commands.indexOf(cmd) === -1) {
-		// 	this.declareNoJoy();
-		// 	return;
-		// }
 		switch(cmd) {
 			case 'go' :
 				this.handleGoCommand(args, cmd);
@@ -112,6 +109,6 @@ class Parser {
 
 	constructor(engine) {
 		this._engine = engine;
-		this._console = $('#console');
+		this._console = $('#feedback');
 	}
 }
