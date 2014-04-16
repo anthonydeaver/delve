@@ -15,15 +15,14 @@ class Rooms {
 
     private getStart() {
         for(var i in this._deck) {
-            this._deck[i].connections = {};
-            this._deck[i].name = this._deck[i].name.replace(/\+/g, ' ');
-            this._deck[i].desc = this._deck[i].desc.replace(/\+/g, ' ');
-            this._deck[i].gridCoord = [];
+            // this._deck[i].connections = {};
+            // this._deck[i].name = this._deck[i].name.replace(/\+/g, ' ');
+            // this._deck[i].desc = this._deck[i].desc.replace(/\+/g, ' ');
+            // this._deck[i].gridCoord = [];
             if(this._deck[i].start) {
                 this._activeRoom = this._deck[i];
                 //delete this._deck[i];
             } else {
-            // Little housekeeping
                 this._rooms.push(i);
             }
         }
@@ -74,7 +73,7 @@ class Rooms {
             this._activeRoom.connections[dot] = rm;
             rm.connections[this.getPolar(dot)] = this._activeRoom;
             /* draw on the map */
-            this._map.addRoom(rm, dot, this._activeRoom.short_code);
+            this._map.addRoom(rm, dot, this._activeRoom.id);
 
             // set map coordinates
             switch(dot) {

@@ -42,15 +42,8 @@ class Editor {
 		for(var k in rm) {
 			var f = $('#roomMaker [name="' + k + '"]');
 			f.val(rm[k]);
-			if(k == 'hasMonster' && rm[k] === true) {
-				$('#roomMaker [name="hasMonster"]').attr('checked','checked')
-			} else {
-				$('#roomMaker [name="hasMonster"]').removeAttr('checked');
-			}
-			if(k == 'hasTreasure' && rm[k] === true) {
-				$('#roomMaker [name="hasTreasure"]').attr('checked','checked')
-			} else {
-				$('#roomMaker [name="hasTreasure"]').removeAttr('checked');
+			if(k == 'hasMonster' || k == 'hasTreasure' || k == 'start') {
+				$('#roomMaker [name="' + k + '"]').prop('checked',rm[k]);
 			}
 		}
 		$('#roomMaker #create').hide();
@@ -100,13 +93,15 @@ class Editor {
     	var required = ['name', 'desc'];
     	var str = $('#roomMaker').serialize();
     	var t:any = this.queryToObj(str);
+    	console.log('t: ', t);
+    	console.log('t: ', str);
     	var URID = t.name.replace(/\W/g,'_').toLowerCase();
     	var r:any = this._rooms[URID] || {};
     	var valid = true;
 
     	// Check for empty required fields.
     	for (var x = 0; x < required.length; x++) {
-    		console.log(required[x] + ": " + t[required[x]].length);
+    		// console.log(required[x] + ": " + t[required[x]].length);
     		if (t[required[x]].length < 1) {  
     			this.alert('Missing Required field: ' + required[x]);
     			valid = false;
@@ -123,6 +118,7 @@ class Editor {
 
     	var exits = $("input[name='exits']:checked");
     	for( var e:any = 0; e < exits.length; e++) {
+    	console.log('exits: ', exits[e].value);
     		r.exits.push(exits[e].value);
     	}
 
@@ -132,10 +128,10 @@ class Editor {
     	}
 
     	// Set Defaults
-    	r.hasMonster = (t.hasMonster === "on");
-    	r.hasTreasure =(t.hasTreasure === "on");
-
-    	r.start = (t.start === "on");
+    	r.hasMonster = $('#roomMaker [name="hasMonster"]').is(':checked');;
+    	r.hasTreasure = $('#roomMaker [name="hasTreasure"]').is(':checked');;
+    	console.log('t.start: ', (t.start === "on"));
+    	r.start = $('#roomMaker [name="start"]').is(':checked');;
     	if(r.start) {
     		for (var i = 0; i < this._rooms.length; i++) {
     			this._rooms[i].start = false;

@@ -16,7 +16,7 @@ class DelveMap {
 		});
 	}
 	public setStartPoint(rm) {
-        var sp = $('<span />').attr('id', rm.short_code).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
+        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', this._yPos + 'px').css('left', this._xPos + 'px');
         $('#map').append(sp);		
 	}
 	public addRoom(rm: any, direction: any, target) {
@@ -39,7 +39,7 @@ class DelveMap {
                 break;
         }
 		console.log('target: ', yPos);
-        var sp = $('<span />').attr('id', rm.short_code).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
+        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
         $('#map').append(sp);		
 
 	}
