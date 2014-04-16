@@ -18,7 +18,7 @@ var Editor = (function () {
         this.registerEvents();
     }
     Editor.prototype.handleExistingRooms = function (data) {
-        data = decodeURIComponent(data);
+        // data = decodeURIComponent(data);
         $('#selector').hide();
 
         // $('#roomList').show();
@@ -65,6 +65,15 @@ var Editor = (function () {
 
         return obj;
     };
+    Editor.prototype.serialArrayToObj = function (arr) {
+        var len = arr.length, obj = {}, i;
+
+        for (i = 0; i < len; i++) {
+            obj[arr[i].name] = arr[i].value;
+        }
+
+        return obj;
+    };
 
     // Event Handlers
     Editor.prototype.onFileChange = function (evt) {
@@ -91,10 +100,10 @@ var Editor = (function () {
     Editor.prototype.onSaveRoom = function (e) {
         e.preventDefault();
         var required = ['name', 'desc'];
-        var str = $('#roomMaker').serialize();
-        var t = this.queryToObj(str);
+        var str = $('#roomMaker').serializeArray();
+        var t = this.serialArrayToObj(str);
+        console.log('str: ', str);
         console.log('t: ', t);
-        console.log('t: ', str);
         var URID = t.name.replace(/\W/g, '_').toLowerCase();
         var r = this._rooms[URID] || {};
         var valid = true;
@@ -140,7 +149,7 @@ var Editor = (function () {
                 this._rooms[i].start = false;
             }
         }
-
+        console.log('r: ', r);
         this._rooms[r.id] = r;
 
         Utils.resetForm($('#roomMaker'));
