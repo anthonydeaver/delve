@@ -1,22 +1,21 @@
 var DelveMap = (function () {
     function DelveMap() {
-        this._map = $('#map article');
+        this._map = $('#map article div');
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
         $event.emit('log', 'registering map events');
-        $event.bind('togglemap', function () {
+        var toggle = function () {
             $('#map').toggle();
             $(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map');
-        });
-        $('#BTN_MAP_TOGGLE').on('click', function () {
-            $('#map').toggle();
-            $(this).html($('#map').is(':visible') ? 'Close Map' : 'Open Map');
-        });
+        };
+
+        $event.bind('togglemap', toggle);
+        $('#BTN_MAP_TOGGLE').on('click', toggle);
     };
     DelveMap.prototype.setStartPoint = function (rm) {
-        var xPos = 200;
-        var yPos = 460;
+        var xPos = 1080;
+        var yPos = 1500;
         var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
         $(this._map).append(sp);
         this.addExits(yPos, xPos, rm);
@@ -41,12 +40,11 @@ var DelveMap = (function () {
                 xPos -= 120;
                 break;
         }
-        console.log('target: ', yPos);
-        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
+        var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
+        var sp = $('<span />').attr('id', rm.id).html(name).css('top', yPos + 'px').css('left', xPos + 'px');
         $(this._map).append(sp);
 
         // Add in the direction markers
-        //
         this.addExits(yPos, xPos, rm);
     };
 
@@ -76,7 +74,21 @@ var DelveMap = (function () {
             marker.html(txt);
             $(this._map).append(marker);
         }
-        $('#map')[0].scrollTop = $('#map')[0].scrollheight;
+
+        // Atempt to keep the current location centered in the map
+        // $(this._map)[0].scrollTop = $(this._map)[0].scrollheight;
+        var w = $('#map article').width();
+        var h = $('#map article').height();
+        console.log('scrollLeft: ', (xPos - 50) - (w / 2));
+        console.log('scrollTop: ', (yPos) - (h / 2));
+        $('#map article')[0].scrollLeft = (xPos + 50) - (w / 2);
+        $('#map article')[0].scrollTop = (yPos) - (h / 2);
+    };
+
+    DelveMap.prototype.shorten = function (name) {
+        var arr = name.split(' ');
+        var ret = arr[0][0] + '.' + arr[1];
+        return ret;
     };
     return DelveMap;
 })();

@@ -15,7 +15,7 @@ var Parser = (function () {
             'go': [
                 "You can't go in that direction",
                 "That's impossible.",
-                "{%s} isn't open.",
+                "'{%s}'' isn't a valid exit.",
                 "Try again, you can't go that way.",
                 "Seriously, you have a map..."
             ],
@@ -24,12 +24,12 @@ var Parser = (function () {
             ]
         };
         this._engine = engine;
-        this._console = $('#feedback');
+        this.registerEvents();
     }
     // Private methods
     Parser.prototype.declareCantDo = function (cmd, args) {
-        this.cantDo[cmd] = Utils.shuffle(this.cantDo[cmd]);
-        var str = this.cantDo.go[0].replace(/{%s}/g, args.join(' '));
+        var arr = Utils.shuffle(this.cantDo[cmd]);
+        var str = arr[0].replace(/{%s}/g, args);
         this.updateConsole(str);
     };
     Parser.prototype.declareNoJoy = function () {
@@ -38,11 +38,9 @@ var Parser = (function () {
     };
 
     Parser.prototype.updateConsole = function (msg) {
-        $(this._console).append('<br /><span>' + msg + '</span>');
-        $(this._console)[0].scrollTop = $(this._console)[0].scrollHeight;
-        // $('#feedback span').each(function() {
-        // 	console.log('this: ', $(this));
-        // });
+        var _console = $('#feedback');
+        $(_console).append('<br /><span>' + msg + '</span>');
+        $(_console)[0].scrollTop = $(_console)[0].scrollHeight;
     };
 
     Parser.prototype.handleShowCommand = function (args) {
@@ -73,6 +71,11 @@ var Parser = (function () {
             $event.emit('gotoRoom', dot);
         }
     };
+
+    Parser.prototype.registerEvents = function () {
+        $event.bind('nojoy', this.updateConsole);
+    };
+
     Parser.prototype.execute = function (val) {
         $event.emit('log', 'parsing command');
         this._commandBuffer.push(val);

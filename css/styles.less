@@ -86,10 +86,9 @@
 			}
 			#map { 
 				width: 500px; 
-				overflow:hidden; 
+				overflow:auto; 
 				padding: 0px; 
-				height: 300px; 
-				display: none;
+				height: 600px; 
 				position: absolute;
 
 				header {
@@ -99,9 +98,14 @@
 					padding: 5;				
 				}
 
-				article {
-					height: 280px;
+				#wrapper {
+					height: 572px;
 					overflow: auto;
+					position: relative;
+					div {
+						height: 3000px;
+						width: 3000px;
+					}
 
 					span {
 						display: block;

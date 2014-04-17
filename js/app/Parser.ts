@@ -5,7 +5,6 @@ declare var $;
 declare var $event;
 
 class Parser {
-	private _console;
 	private _commandBuffer = [];
 	private _engine: Engine;
 	private _commands: any = ['go','look','examine','take','use', 'help'];
@@ -20,7 +19,7 @@ class Parser {
 		'go' : [
 			"You can't go in that direction",
 			"That's impossible.",
-			"{%s} isn't open.",
+			"'{%s}'' isn't a valid exit.",
 			"Try again, you can't go that way.",
 			"Seriously, you have a map..."
 		],
@@ -31,8 +30,8 @@ class Parser {
 
 	// Private methods
 	private declareCantDo(cmd, args) {
-		this.cantDo[cmd] = Utils.shuffle(this.cantDo[cmd]);
-		var str = this.cantDo.go[0].replace(/{%s}/g, args.join(' '));
+		var arr = Utils.shuffle(this.cantDo[cmd]);
+		var str = arr[0].replace(/{%s}/g, args);
 		this.updateConsole(str);
 	}
 	private declareNoJoy() {
@@ -41,11 +40,9 @@ class Parser {
 	}
 
 	private updateConsole(msg) {
-		$(this._console).append('<br /><span>' + msg + '</span>');
-		$(this._console)[0].scrollTop = $(this._console)[0].scrollHeight;
-		// $('#feedback span').each(function() {
-		// 	console.log('this: ', $(this));
-		// });
+		var _console = $('#feedback');
+		$(_console).append('<br /><span>' + msg + '</span>');
+		$(_console)[0].scrollTop = $(_console)[0].scrollHeight;
 	}
 
 	private handleShowCommand(args: any) {
@@ -75,6 +72,11 @@ class Parser {
 		}
 
 	}
+
+	private registerEvents() {
+		$event.bind('nojoy', this.updateConsole);
+	}
+
 	public execute(val) {
 		$event.emit('log', 'parsing command');
 		this._commandBuffer.push(val);
@@ -109,6 +111,6 @@ class Parser {
 
 	constructor(engine) {
 		this._engine = engine;
-		this._console = $('#feedback');
+		this.registerEvents();
 	}
 }

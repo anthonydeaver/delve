@@ -122,8 +122,8 @@ var Editor = (function () {
         r.id = URID;
         r.desc = t.desc.replace(/\+/g, ' ');
         r.exits = [];
-        r.connections = {};
-        r.gridCoord = [];
+        r.links = {};
+        r.position = [];
 
         var exits = $("input[name='exits']:checked");
         for (var e = 0; e < exits.length; e++) {

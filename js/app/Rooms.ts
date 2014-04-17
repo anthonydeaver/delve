@@ -8,19 +8,17 @@ class Rooms {
     private _deck: any;
     private _map: DelveMap;
     private _activeRoom: any;
-    private _currentGridSet = [0,0];
+    private _currentpositionSet = [0,0];
 
     private _gotoRoom = (e) => { console.log('caught'); this.onDirectionSelected(e); }
 
     private getStart() {
         for(var i in this._deck) {
-            // this._deck[i].connections = {};
-            // this._deck[i].name = this._deck[i].name.replace(/\+/g, ' ');
-            // this._deck[i].desc = this._deck[i].desc.replace(/\+/g, ' ');
-            // this._deck[i].gridCoord = [];
             if(this._deck[i].start) {
                 this._activeRoom = this._deck[i];
-                //delete this._deck[i];
+                // Remove the starting point from the room so 
+                // we never encounter it again.
+                delete this._deck[i];
             } else {
                 this._rooms.push(i);
             }
@@ -30,7 +28,7 @@ class Rooms {
         // insert into map
         this._map.setStartPoint(this._activeRoom);
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-        this._activeRoom.gridCoord = this._currentGridSet;
+        this._activeRoom.position = this._currentpositionSet;
         this.renderRoom(this._activeRoom);
     }
 
@@ -49,49 +47,43 @@ class Rooms {
         console.log('active room: ', this._activeRoom[dot]);
         // Make sure the active room has that exit available
         if(this._activeRoom.exits.indexOf(dot) === -1) {
-            $event.emit('error', "[r] You can't go that way.");
+            $event.emit('nojoy', "You can't go that way.");
             return;
         }
         var rm;
-        /*
-        activeRoom
-        - user clicks on direction
-        - system checks activeRoom for an existing connection associated with that direction
-            - no connection
-                - system grabs and configures next room
-                - system sets up a connection between activeRoom's exit direction(ex: north) and the new rooms entrance direction (ex: south)
-        - system renders room
-        -system updates activeRoom to new room
-         */
         //First, check the current room for active connections for the selected direction
-        if(this._activeRoom.connections[dot]) {
+        if(this._activeRoom.links[dot]) {
             // already have a connection
-            this.renderRoom(this._activeRoom.connections[dot]);
+            this.renderRoom(this._activeRoom.links[dot]);
         } else {
+            if(!this._rooms.length) {
+                $event.emit('nojoy', 'That exit is sealed by some unknown force.');
+            }
             rm = this.drawRoom(dot);
             if(!rm) { $event.emit('error','Failed to load new room!'); }
-            this._activeRoom.connections[dot] = rm;
-            rm.connections[this.getPolar(dot)] = this._activeRoom;
+            this._activeRoom.links[dot] = rm;
+            console.log('links: ', rm);
+            rm.links[this.getPolar(dot)] = this._activeRoom;
             /* draw on the map */
             this._map.addRoom(rm, dot, this._activeRoom.id);
 
             // set map coordinates
             switch(dot) {
                 case 'north' :
-                    this._currentGridSet[1]++;
+                    this._currentpositionSet[1]++;
                     break;
                 case 'south' :
-                    this._currentGridSet[1]--;
+                    this._currentpositionSet[1]--;
                     break;
                 case 'east' :
-                    this._currentGridSet[0]++;
+                    this._currentpositionSet[0]++;
                     break;
                 case 'west' :
-                    this._currentGridSet[0]--;
+                    this._currentpositionSet[0]--;
                     break;
             }
 
-            rm.gridCoord = this._currentGridSet;
+            rm.position = this._currentpositionSet;
             
             this.renderRoom(rm);
         }
@@ -167,31 +159,28 @@ class Rooms {
             $event.emit('error', 'no more rooms');
         }
         var r = this._rooms.pop();
-        console.log('r: ', r);
         var rm = this._deck[r];
-        console.log('rm: ', rm);
 
         if(this.checkExits(rm, e)) { 
             return rm; //Good as is
         }
         var that = this;
-        var cnt = 0
-        var recur = function(rm) {
-            cnt++;
-            if(cnt >= 4) { 
-                // We failed, give up    
-                $event.emit('error', 'failed to fix room: ' + rm.name);
-                return; 
-            } 
-            rm = that.rotateRoomExits(rm);
-        console.log('rm-recur: ', cnt);
-            if(that.checkExits(rm, e)) {
-                return rm;
-            } else {
-                recur(rm);       
-            }
+        var cnt = 0;
+
+        function memoizer(rm) {
+            var recur = function(d) {
+                rm = that.rotateRoomExits(rm);
+                // var result = that.checkExits(rm, d);
+                if(!that.checkExits(rm, d)) {
+                    rm = recur(d);
+                }
+                return rm
+            };
+            return recur;
         }
-        return recur(rm);
+
+        var test = memoizer(rm);
+        return test(e);
     }
 
     private registerEvents() {
