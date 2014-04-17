@@ -1,0 +1,133 @@
+{
+   "rooms":{
+      "foyer":{
+         "name":"Foyer",
+         "id":"foyer",
+         "desc":"<p>You are standing in the foyer of a large mansion just outside of town. The door behind you is locked and sealed, you must find the key to open it. The house itself is reputed to contain vast quantities of hidden treasure.</p>\r\n\r\n<p>It is also reputed to be haunted.</p>\r\n\r\n<p>In addition to the treasure it contains various objects which may or may not be helpful in your quest. They may also kill you.</p>\r\n\r\n<p>Oh, one last thing. No one has ever returned from entering this house. Rumor is that in addition to ghosts and goblins, there be monsters. There is a fairly good chance this is the safest room here.</p>\r\n\r\n<p>Good luck!</p>",
+         "exits":[
+            "north",
+            "east",
+            "west"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":false,
+         "start":true
+      },
+      "library":{
+         "name":"Library",
+         "id":"library",
+         "desc":"Lots and lots of books. Perhaps there is something here that will help. Or, perhaps not.",
+         "exits":[
+            "north",
+            "south",
+            "east"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":true,
+         "start":false
+      },
+      "hallway":{
+         "name":"Hallway",
+         "id":"hallway",
+         "desc":"Standard hallway, nothing special.",
+         "exits":[
+            "north",
+            "south",
+            "east"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":false,
+         "start":false
+      },
+      "study":{
+         "name":"Study",
+         "id":"study",
+         "desc":"No Ms. Scarlet! Please don't!",
+         "exits":[
+            "south",
+            "east"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":true,
+         "hasTreasure":true,
+         "start":false
+      },
+      "office":{
+         "name":"Office",
+         "id":"office",
+         "desc":"Taking care of bid'ness.",
+         "exits":[
+            "north",
+            "east"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":true,
+         "hasTreasure":false,
+         "start":false
+      },
+      "pantry":{
+         "name":"Pantry",
+         "id":"pantry",
+         "desc":"This is where the food is at.",
+         "exits":[
+            "north"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":true,
+         "hasTreasure":true,
+         "start":false
+      },
+      "billiard_room":{
+         "name":"Billiard Room",
+         "id":"billiard_room",
+         "desc":"Where everyone can play with their balls.",
+         "exits":[
+            "north",
+            "east",
+            "west"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":false,
+         "start":false
+      }
+   }
+}
