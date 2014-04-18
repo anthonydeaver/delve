@@ -8,7 +8,8 @@ class Rooms {
     private _deck: any;
     private _map: DelveMap;
     private _activeRoom: any = null;
-    private _currentpositionSet = [0,0];
+    private _startRoom: any = null;
+    private _currentpositionSet = {x:0, y:0};
     private _mapGrid: any = [];
 
     private _gotoRoom = (e) => { this.onDirectionSelected(e); }
@@ -24,11 +25,23 @@ class Rooms {
         console.log('+++++++++++++++++++++++++++++++++');
     }
 
-    private getStart() {
+    private resetGame() {
+        this._activeRoom = '';
+        this._rooms = [];
+        this._mapGrid = null;
+        for(var i in this._deck) {
+            this._rooms.push(i);
+        }
+        // this._rooms = Utils.shuffle(this._rooms);
+        // this._mapGrid = this.generateGrid(len);
+        // this._mapGrid[offset][offset] = this._startRoom.id;
+    }
+
+    private setUp() {
         var len = 0, offset = 0;
         for(var i in this._deck) {
             if(this._deck[i].start) {
-                this._activeRoom = this._deck[i];
+                this._startRoom = this._deck[i];
                 // Remove the starting point from the room so 
                 // we never encounter it again.
                 delete this._deck[i];
@@ -38,9 +51,9 @@ class Rooms {
         }
 
         // In case I forgot to set an starting room.
-        if(this._activeRoom === null) {
+        if(this._startRoom === null) {
             var t = this._rooms.pop();
-            this._activeRoom = this._deck[t];
+            this._startRoom = this._deck[t];
             delete this._deck[t];
 
         }
@@ -49,15 +62,14 @@ class Rooms {
         len = this._rooms.length + 1;
         offset = Math.floor(len / 2);
         this._mapGrid = this.generateGrid(len);
-        console.log('');
-        this._mapGrid[offset][offset] = this._activeRoom.id;
+        this._mapGrid[offset][offset] = this._startRoom.id;
 
         this._rooms = Utils.shuffle(this._rooms);
         // insert into map
-        this._map.setStartPoint(this._activeRoom);
+        this._map.setStartPoint(this._startRoom);
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-        this._activeRoom.position = this._currentpositionSet;
-        this.renderRoom(this._activeRoom);
+        this._startRoom.position = this._currentpositionSet;
+        this.renderRoom(this._startRoom);
     }
 
     // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
@@ -108,16 +120,16 @@ class Rooms {
             // set map coordinates
             switch(dot) {
                 case 'north' :
-                    this._currentpositionSet[1]++;
+                    this._currentpositionSet.y++;
                     break;
                 case 'south' :
-                    this._currentpositionSet[1]--;
+                    this._currentpositionSet.y--;
                     break;
                 case 'east' :
-                    this._currentpositionSet[0]++;
+                    this._currentpositionSet.x++;
                     break;
                 case 'west' :
-                    this._currentpositionSet[0]--;
+                    this._currentpositionSet.x--;
                     break;
             }
 
@@ -243,7 +255,7 @@ class Rooms {
             that._deck = data.rooms;
 
             // Find the starting point of the delve
-            that.getStart();
+            that.setUp();
 
             that.registerEvents();
         });

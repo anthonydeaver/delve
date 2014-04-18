@@ -3,6 +3,9 @@ declare var $event;
 
 class DelveMap {
 	private _map: HTMLElement;
+	private _level: number = 0;
+
+	private _onAddLevel = (e) => { this.addLevel(); }
 
 	private registerEvents() {
 		$event.emit('log', 'registering map events');
@@ -13,6 +16,23 @@ class DelveMap {
 
 		$event.bind('togglemap', toggle);
 		$('#BTN_MAP_TOGGLE').on('click', toggle);
+		$('#BTN_MAP_LEVEL').on('click', this._onAddLevel);
+	}
+
+	private addLevel() {
+		this._level++;
+		var map = $('#map');
+		var lvl = $('<article />').attr('id','wrapper').attr('level',this._level);
+		var cont = $('<div />');
+		lvl.append(cont);
+		$(map).append(lvl);
+		//this._map = $(cont);
+
+	}
+	private init() {
+		this.addLevel();
+		this._map = $('#map article[level="1"] div');
+
 	}
 	public setStartPoint(rm) {
 		var xPos = 1080;
@@ -66,13 +86,15 @@ class DelveMap {
 
         // Atempt to keep the current location centered in the map
         // $(this._map)[0].scrollTop = $(this._map)[0].scrollheight;
-        var w = $('#map article').width();
-        var h = $('#map article').height();
-        console.log('scrollLeft: ', (xPos - 50) - (w / 2));
-        console.log('scrollTop: ', (yPos) - (h / 2));
-        $('#map article')[0].scrollLeft = (xPos + 50) - (w / 2);
-        $('#map article')[0].scrollTop = (yPos) - (h / 2);
-
+        // New center point of 
+        // top: -1310
+        // left: -880
+        // var w = $('#map article').width();
+        // var h = $('#map article').height();
+        // console.log('scrollLeft: ', (xPos - 50) - (w / 2));
+        // console.log('scrollTop: ', (yPos) - (h / 2));
+        // $('#map article')[0].scrollLeft = (xPos + 50) - (w / 2);
+        // $('#map article')[0].scrollTop = (yPos) - (h / 2);
 	}
 
 	private shorten(name) {
@@ -82,8 +104,9 @@ class DelveMap {
 	}
 
 	constructor() {
-		this._map = $('#map article div');
+		//this._map = $('#map article[level="'+ this._level + '"] div');
+		this.init();
+		console.log('map: ', this._map);
 		this.registerEvents();
-	}
-	
+	}	
 }

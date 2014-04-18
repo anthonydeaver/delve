@@ -90,7 +90,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= jshint.files %>', '<%= typescript.base.src %>', 'src/css/delve.less'],
-      tasks: ['jshint','less','typescript','clean']
+      tasks: ['less','typescript','clean']
     }
   });
 

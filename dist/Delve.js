@@ -1,6 +1,12 @@
 var DelveMap = (function () {
     function DelveMap() {
-        this._map = $('#map article div');
+        var _this = this;
+        this._level = 0;
+        this._onAddLevel = function (e) {
+            _this.addLevel();
+        };
+        this.init();
+        console.log('map: ', this._map);
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
@@ -12,6 +18,20 @@ var DelveMap = (function () {
 
         $event.bind('togglemap', toggle);
         $('#BTN_MAP_TOGGLE').on('click', toggle);
+        $('#BTN_MAP_LEVEL').on('click', this._onAddLevel);
+    };
+
+    DelveMap.prototype.addLevel = function () {
+        this._level++;
+        var map = $('#map');
+        var lvl = $('<article />').attr('id', 'wrapper').attr('level', this._level);
+        var cont = $('<div />');
+        lvl.append(cont);
+        $(map).append(lvl);
+    };
+    DelveMap.prototype.init = function () {
+        this.addLevel();
+        this._map = $('#map article[level="1"] div');
     };
     DelveMap.prototype.setStartPoint = function (rm) {
         var xPos = 1080;
@@ -73,13 +93,6 @@ var DelveMap = (function () {
             marker.html(txt);
             $(this._map).append(marker);
         }
-
-        var w = $('#map article').width();
-        var h = $('#map article').height();
-        console.log('scrollLeft: ', (xPos - 50) - (w / 2));
-        console.log('scrollTop: ', (yPos) - (h / 2));
-        $('#map article')[0].scrollLeft = (xPos + 50) - (w / 2);
-        $('#map article')[0].scrollTop = (yPos) - (h / 2);
     };
 
     DelveMap.prototype.shorten = function (name) {
@@ -229,7 +242,8 @@ var Rooms = (function () {
         var _this = this;
         this._rooms = [];
         this._activeRoom = null;
-        this._currentpositionSet = [0, 0];
+        this._startRoom = null;
+        this._currentpositionSet = { x: 0, y: 0 };
         this._mapGrid = [];
         this._gotoRoom = function (e) {
             _this.onDirectionSelected(e);
@@ -243,7 +257,7 @@ var Rooms = (function () {
         $.getJSON('/environs/' + locale + '/rooms.json', function (data) {
             that._deck = data.rooms;
 
-            that.getStart();
+            that.setUp();
 
             that.registerEvents();
         });
@@ -258,11 +272,20 @@ var Rooms = (function () {
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
-    Rooms.prototype.getStart = function () {
+    Rooms.prototype.resetGame = function () {
+        this._activeRoom = '';
+        this._rooms = [];
+        this._mapGrid = null;
+        for (var i in this._deck) {
+            this._rooms.push(i);
+        }
+    };
+
+    Rooms.prototype.setUp = function () {
         var len = 0, offset = 0;
         for (var i in this._deck) {
             if (this._deck[i].start) {
-                this._activeRoom = this._deck[i];
+                this._startRoom = this._deck[i];
 
                 delete this._deck[i];
             } else {
@@ -270,24 +293,23 @@ var Rooms = (function () {
             }
         }
 
-        if (this._activeRoom === null) {
+        if (this._startRoom === null) {
             var t = this._rooms.pop();
-            this._activeRoom = this._deck[t];
+            this._startRoom = this._deck[t];
             delete this._deck[t];
         }
 
         len = this._rooms.length + 1;
         offset = Math.floor(len / 2);
         this._mapGrid = this.generateGrid(len);
-        console.log('');
-        this._mapGrid[offset][offset] = this._activeRoom.id;
+        this._mapGrid[offset][offset] = this._startRoom.id;
 
         this._rooms = Utils.shuffle(this._rooms);
 
-        this._map.setStartPoint(this._activeRoom);
+        this._map.setStartPoint(this._startRoom);
 
-        this._activeRoom.position = this._currentpositionSet;
-        this.renderRoom(this._activeRoom);
+        this._startRoom.position = this._currentpositionSet;
+        this.renderRoom(this._startRoom);
     };
 
     Rooms.prototype.generateGrid = function (size) {
@@ -337,16 +359,16 @@ var Rooms = (function () {
 
             switch (dot) {
                 case 'north':
-                    this._currentpositionSet[1]++;
+                    this._currentpositionSet.y++;
                     break;
                 case 'south':
-                    this._currentpositionSet[1]--;
+                    this._currentpositionSet.y--;
                     break;
                 case 'east':
-                    this._currentpositionSet[0]++;
+                    this._currentpositionSet.x++;
                     break;
                 case 'west':
-                    this._currentpositionSet[0]--;
+                    this._currentpositionSet.x--;
                     break;
             }
 
