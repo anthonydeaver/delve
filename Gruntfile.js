@@ -2,17 +2,25 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    // ts: {
-    //  options: {
-    //      target: 'es5',
-    //      module: 'commonjs',
-    //      sourcemap: false
-    //  },
-    //  responsive: {
-    //      src: ["Scripts/**/*.ts", "!Scripts/UI/**/*.ts", "!Scripts/Tests/**/*.ts", "Scripts/UI/Responsive/**/*.ts"],
-    //      out: "Distribution/wxmap.responsive.debug.js",
-    //      reference: 'Scripts/UI/Responsive/Reference.ts',
-    //  }
+    typescript: {
+      base: {
+        options: {
+          target: 'es5',
+          module: 'amd'
+        },
+        src: ['src/ts/game/*.ts'],
+        dest: 'dist/<%= pkg.name %>.js'
+      }
+    },
+    // typescript: {
+    //     base: {
+    //         src: ['lib/**/*.ts'],
+    //         dest: 'js/PixelVisionJSDemos.js',
+    //         options: {
+    //             module: 'amd',
+    //             target: 'es5'
+    //         }
+    //     }
     // },
     less: {
       development: {
@@ -25,6 +33,11 @@ module.exports = function(grunt) {
           // target.css file: source.less file
           "dist/css/delve.css": "src/css/delve.less"
         }
+      }
+    },
+    clean : {
+      main : {
+          src : [ "src/ts/game/*.js"]
       }
     },
     concat: {
@@ -42,7 +55,7 @@ module.exports = function(grunt) {
       },
       dist: {
         files: {
-          'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+          'dist/<%= pkg.name %>.min.js': ['<%= typescript.base.dest %>']
         }
       }
     },
@@ -76,15 +89,17 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: ['<%= jshint.files %>', 'src/css/delve.less'],
-      tasks: ['jshint','less']
+      files: ['<%= jshint.files %>', '<%= typescript.base.src %>', 'src/css/delve.less'],
+      tasks: ['jshint','less','typescript','clean']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-typescript');
   // grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-less');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -92,6 +107,6 @@ module.exports = function(grunt) {
   grunt.registerTask('test', ['jshint']);
 
   //grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
-  grunt.registerTask('default', ['jshint', 'less', 'concat', 'uglify', 'copy']);
+  grunt.registerTask('default', ['jshint', 'less', 'typescript', 'uglify', 'copy', 'clean']);
 
 };
