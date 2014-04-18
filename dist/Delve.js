@@ -32,19 +32,19 @@ var DelveMap = (function () {
         this.addLevel(this._level);
         this._map = $('#map article[level="1"] div');
     };
-    DelveMap.prototype.setStartPoint = function (rm) {
-        var xPos = 1080;
-        var yPos = 1500;
-        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $(this._map).append(sp);
-        this.addExits(yPos, xPos, rm);
-    };
+
     DelveMap.prototype.addRoom = function (rm, direction, target) {
-        var t = $('#' + target);
+        var t, xPos, yPos;
         var txt;
-        var xPos = parseInt($(t).css('left'), 10);
-        var yPos = parseInt($(t).css('top'), 10);
-        console.log('target: ', yPos);
+        if (target === null) {
+            xPos = 1080;
+            yPos = 1500;
+        } else {
+            t = $('#' + target);
+            xPos = parseInt($(t).css('left'), 10);
+            yPos = parseInt($(t).css('top'), 10);
+        }
+
         switch (direction) {
             case 'north':
                 yPos -= 40;
@@ -57,6 +57,8 @@ var DelveMap = (function () {
                 break;
             case 'west':
                 xPos -= 120;
+                break;
+            default:
                 break;
         }
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
@@ -93,7 +95,7 @@ var DelveMap = (function () {
             $(this._map).append(marker);
         }
 
-        $(this._map).css('top', -(yPos - 190));
+        $(this._map).css('top', -(yPos - 200));
         $(this._map).css('left', -(xPos - 200));
     };
 
@@ -313,7 +315,7 @@ var Rooms = (function () {
 
         this._rooms = Utils.shuffle(this._rooms);
 
-        this._map.setStartPoint(this._startRoom);
+        this._map.addRoom(this._startRoom, null, null);
 
         this._startRoom.position = this._currentpositionSet;
         this.renderRoom(this._startRoom);
@@ -523,8 +525,6 @@ var Engine = (function () {
         this._log = function (m) {
             return _this.onLog(m);
         };
-        this.onLog('this is a test');
-
         this._world = this._mappings[o.world || '0001'];
         new Player();
         this._parser = new Parser(this);

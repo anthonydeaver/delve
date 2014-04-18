@@ -66,7 +66,9 @@ class Rooms {
 
         this._rooms = Utils.shuffle(this._rooms);
         // insert into map
-        this._map.setStartPoint(this._startRoom);
+        // this._map.setStartPoint(this._startRoom);
+        this._map.addRoom(this._startRoom, null, null);
+
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
         this._startRoom.position = this._currentpositionSet;
         this.renderRoom(this._startRoom);

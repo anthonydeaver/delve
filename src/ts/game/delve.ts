@@ -96,11 +96,6 @@ class Engine {
 	}
 
 	constructor(o) {
-		this.onLog('this is a test');
-		// this._world = this._mappings[o.world || '0001'];
-		// this._player = new Player();
-		// this._parser = new Parser(this);
-		// this._roomManager = new Rooms(this, this._world);
 		this._world = this._mappings[o.world || '0001'];
 		new Player();
 		this._parser = new Parser(this);
@@ -109,6 +104,5 @@ class Engine {
 		this.registerEvents();
 
 		this.setupUI();
-		// new Modal({title: 'Welcome to Delve!', msg: 'Welcome, be with you shortly...'});
 	}
 }

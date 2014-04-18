@@ -31,21 +31,20 @@ class DelveMap {
 	private init() {
 		this.addLevel(this._level);
 		this._map = $('#map article[level="1"] div');
+	}
 
-	}
-	public setStartPoint(rm) {
-		var xPos = 1080;
-		var yPos = 1500;
-        var sp = $('<span />').attr('id', rm.id).attr('type','room').html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $(this._map).append(sp);
-        this.addExits(yPos, xPos, rm);		
-	}
 	public addRoom(rm: any, direction: any, target) {
-		var t = $('#' + target);
+		var t, xPos, yPos;
 		var txt;
-		var xPos = parseInt($(t).css('left'), 10);
-		var yPos = parseInt($(t).css('top'), 10);
-		console.log('target: ', yPos);
+		if(target === null) {
+			xPos = 1080;
+			yPos = 1500;
+		} else {
+			t = $('#' + target);
+			xPos = parseInt($(t).css('left'), 10);
+			yPos = parseInt($(t).css('top'), 10);
+		}
+		//console.log('target: ', yPos);
         switch(direction) {
             case 'north':
                 yPos -= 40;
@@ -59,6 +58,8 @@ class DelveMap {
             case 'west':
                 xPos -= 120;
                 break;
+          default:
+          		break;
         }
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
         var sp = $('<span />').attr('id', rm.id).attr('type','room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
@@ -84,7 +85,7 @@ class DelveMap {
         }
 
         // Attempt to keep the current location centered in the map
-        $(this._map).css('top',-(yPos - 190));
+        $(this._map).css('top',-(yPos - 200));
         $(this._map).css('left',-(xPos - 200));
 	}
 
