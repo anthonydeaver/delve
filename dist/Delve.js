@@ -1,9 +1,9 @@
 var DelveMap = (function () {
     function DelveMap() {
         var _this = this;
-        this._level = 0;
+        this._level = 1;
         this._onAddLevel = function (e) {
-            _this.addLevel();
+            _this.addLevel(_this._level + 1);
         };
         this.init();
         console.log('map: ', this._map);
@@ -21,22 +21,21 @@ var DelveMap = (function () {
         $('#BTN_MAP_LEVEL').on('click', this._onAddLevel);
     };
 
-    DelveMap.prototype.addLevel = function () {
-        this._level++;
+    DelveMap.prototype.addLevel = function (lvl) {
         var map = $('#map');
-        var lvl = $('<article />').attr('id', 'wrapper').attr('level', this._level);
+        var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
         var cont = $('<div />');
-        lvl.append(cont);
-        $(map).append(lvl);
+        art.append(cont);
+        $(map).append(art);
     };
     DelveMap.prototype.init = function () {
-        this.addLevel();
+        this.addLevel(this._level);
         this._map = $('#map article[level="1"] div');
     };
     DelveMap.prototype.setStartPoint = function (rm) {
         var xPos = 1080;
         var yPos = 1500;
-        var sp = $('<span />').attr('id', rm.id).html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
+        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(rm.name).css('top', yPos + 'px').css('left', xPos + 'px');
         $(this._map).append(sp);
         this.addExits(yPos, xPos, rm);
     };
@@ -61,7 +60,7 @@ var DelveMap = (function () {
                 break;
         }
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
-        var sp = $('<span />').attr('id', rm.id).html(name).css('top', yPos + 'px').css('left', xPos + 'px');
+        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
         $(this._map).append(sp);
 
         this.addExits(yPos, xPos, rm);
@@ -71,7 +70,7 @@ var DelveMap = (function () {
         var txt;
         for (var x = 0; x < rm.exits.length; x++) {
             var top = yPos, left = xPos;
-            var marker = $('<span />').addClass('direction ' + rm.exits[x]).css('border', 'none');
+            var marker = $('<span />').addClass(rm.exits[x]).attr('type', 'directional');
             if (rm.exits[x] === 'north') {
                 top = yPos - 20;
                 txt = '|';
@@ -93,6 +92,14 @@ var DelveMap = (function () {
             marker.html(txt);
             $(this._map).append(marker);
         }
+
+        $(this._map).css('top', -(yPos - 190));
+        $(this._map).css('left', -(xPos - 200));
+    };
+
+    DelveMap.prototype.changeLevels = function (o, n) {
+        $('#map article[level="' + o + '"]').fadeTo("slow", 0.1);
+        $('#map article[level="' + n + '"]').fadeIn("slow");
     };
 
     DelveMap.prototype.shorten = function (name) {
@@ -243,7 +250,7 @@ var Rooms = (function () {
         this._rooms = [];
         this._activeRoom = null;
         this._startRoom = null;
-        this._currentpositionSet = { x: 0, y: 0 };
+        this._currentpositionSet = { x: 0, y: 0, z: 0 };
         this._mapGrid = [];
         this._gotoRoom = function (e) {
             _this.onDirectionSelected(e);
@@ -355,8 +362,6 @@ var Rooms = (function () {
             console.log('links: ', rm);
             rm.links[this.getPolar(dot)] = this._activeRoom;
 
-            this._map.addRoom(rm, dot, this._activeRoom.id);
-
             switch (dot) {
                 case 'north':
                     this._currentpositionSet.y++;
@@ -374,11 +379,13 @@ var Rooms = (function () {
 
             rm.position = this._currentpositionSet;
 
+            this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
         }
     };
 
     Rooms.prototype.renderRoom = function (rm) {
+        $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function () {
             $(this).removeClass();
@@ -392,6 +399,8 @@ var Rooms = (function () {
         }
 
         this._activeRoom = rm;
+        console.log('id: ', rm.id);
+        $('#map span[type="room"]#' + rm.id).addClass('current');
     };
 
     Rooms.prototype.checkExits = function (rm, e) {

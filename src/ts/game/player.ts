@@ -7,6 +7,8 @@ class Player {
 	private _skills: any = [];
 	private _treasure: any = [];
 
+	private _currentRoom;
+
 	// Movement
 	private _direction: string;
 

@@ -9,7 +9,7 @@ class Rooms {
     private _map: DelveMap;
     private _activeRoom: any = null;
     private _startRoom: any = null;
-    private _currentpositionSet = {x:0, y:0};
+    private _currentpositionSet = {x:0, y:0, z:0};
     private _mapGrid: any = [];
 
     private _gotoRoom = (e) => { this.onDirectionSelected(e); }
@@ -114,8 +114,6 @@ class Rooms {
             this._activeRoom.links[dot] = rm;
             console.log('links: ', rm);
             rm.links[this.getPolar(dot)] = this._activeRoom;
-            /* draw on the map */
-            this._map.addRoom(rm, dot, this._activeRoom.id);
 
             // set map coordinates
             switch(dot) {
@@ -135,6 +133,9 @@ class Rooms {
 
             rm.position = this._currentpositionSet;
             
+    
+            /* draw on the map */
+            this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
         }
     }
@@ -145,6 +146,7 @@ class Rooms {
             - possible fire a new room event and let the engine handle this?
      */ 
     private renderRoom(rm) {
+        $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function(){
             $(this).removeClass();
@@ -159,6 +161,8 @@ class Rooms {
         }
 
         this._activeRoom = rm;
+        console.log('id: ', rm.id);
+        $('#map span[type="room"]#' + rm.id).addClass('current');
     }
 
     private checkExits(rm, e) {
