@@ -19,7 +19,7 @@ class Parser {
 		'go' : [
 			"You can't go in that direction",
 			"That's impossible.",
-			"'{%s}'' isn't a valid exit.",
+			"'{%s}' isn't a valid exit.",
 			"Try again, you can't go that way.",
 			"Seriously, you have a map..."
 		],
@@ -54,7 +54,7 @@ class Parser {
 	private handleToggleCommand(args: any[]) {
 		var objects = ['map', 'controls', 'help'];
 		var toggle = args[0];
-		console.log('toggle: ', toggle);
+		// console.log('toggle: ', toggle);
 		if(objects.indexOf(toggle) === -1) {
 			this.declareNoJoy();
 		} else {
@@ -69,7 +69,7 @@ class Parser {
 		if(validDirections.indexOf(dot) === -1) {
 			this.declareCantDo(cmd,dot);
 		} else {
-			console.log('going: ', dot);
+			// console.log('going: ', dot);
 			$event.emit('gotoRoom',dot);
 		}
 

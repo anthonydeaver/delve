@@ -63,7 +63,8 @@
          "desc":"No Ms. Scarlet! Please don't!",
          "exits":[
             "south",
-            "east"
+            "east",
+            "up"
          ],
          "links":{
 
@@ -73,6 +74,25 @@
          ],
          "hasMonster":true,
          "hasTreasure":true,
+         "start":false
+      },
+      "upstairs_hall":{
+         "name":"Upstairs Hall",
+         "id":"upstairs_hall",
+         "desc":"Lots of family photos. At least I think they are family",
+         "exits":[
+            "south",
+            "east",
+            "down"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":false,
          "start":false
       },
       "office":{

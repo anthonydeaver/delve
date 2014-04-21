@@ -9,7 +9,7 @@ class Rooms {
     private _map: DelveMap;
     private _activeRoom: any = null;
     private _startRoom: any = null;
-    private _currentpositionSet = {x:0, y:0, z:0};
+    private _gridCoord = {x:0, y:0, z:0};
     private _mapGrid: any = [];
 
     private _gotoRoom = (e) => { this.onDirectionSelected(e); }
@@ -22,6 +22,7 @@ class Rooms {
         for(var i = 0; i < len; i++) {
             console.log('arr['+i+']: ', this._mapGrid[i].toString());
         }
+        console.log('current grid coords: ', this._gridCoord);
         console.log('+++++++++++++++++++++++++++++++++');
     }
 
@@ -59,8 +60,9 @@ class Rooms {
         }
 
         // add 1 to the length to accoount for the starting room.
-        len = this._rooms.length + 1;
+        len = (this._rooms.length + 1) * 2;
         offset = Math.floor(len / 2);
+        this._gridCoord.x = this._gridCoord.y = offset;
         this._mapGrid = this.generateGrid(len);
         this._mapGrid[offset][offset] = this._startRoom.id;
 
@@ -70,7 +72,7 @@ class Rooms {
         this._map.addRoom(this._startRoom, null, null);
 
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-        this._startRoom.position = this._currentpositionSet;
+        this._startRoom.position = this._gridCoord;
         this.renderRoom(this._startRoom);
     }
 
@@ -95,8 +97,9 @@ class Rooms {
     }
 
     private onDirectionSelected(dot: string) {
-        console.log('direction: ', dot);
-        console.log('active room: ', this._activeRoom[dot]);
+        // if(dot === 'up') {}
+        // if(dot === 'down') {}
+
         // Make sure the active room has that exit available
         if(this._activeRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
@@ -113,29 +116,57 @@ class Rooms {
             }
             rm = this.drawRoom(dot);
             if(!rm) { $event.emit('error','Failed to load new room!'); }
+
+            // Set up the links from the exiting room to the entering room and visa-versa
             this._activeRoom.links[dot] = rm;
-            console.log('links: ', rm);
+            // console.log('links: ', rm);
             rm.links[this.getPolar(dot)] = this._activeRoom;
 
             // set map coordinates
             switch(dot) {
                 case 'north' :
-                    this._currentpositionSet.y++;
+                    this._gridCoord.y--;
                     break;
                 case 'south' :
-                    this._currentpositionSet.y--;
+                    this._gridCoord.y++;
                     break;
                 case 'east' :
-                    this._currentpositionSet.x++;
+                    this._gridCoord.x++;
                     break;
                 case 'west' :
-                    this._currentpositionSet.x--;
+                    this._gridCoord.x--;
                     break;
             }
 
-            rm.position = this._currentpositionSet;
-            
-    
+            this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
+
+            // Go through remaining exits and look for existing rooms on the grid in that
+            // direction and make the necessary links.
+            // If the adjoining room doesn't have an exit to match, remove the new rooms 
+            // corresponding exit. Might cause some rooms to only have a single entrance/exit
+            for( var i = 0; i < rm.exits.length; i++) {
+                var e = rm.exits[i];
+                var or = '';
+                if(e == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
+                if(e == 'north') {
+                    // check up one block on the y axis (technically -1);
+                    or = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                }
+                if(e == 'south') {
+                    // check up one block on the y axis (technically -1);
+                    or = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                }
+                if(e == 'east') {
+                    // check up one block on the y axis (technically -1);
+                    or = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
+                }
+                if(e == 'west') {
+                    // check up one block on the y axis (technically -1);
+                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                }
+                console.log(e + ": ", or);
+            }            
+                
             /* draw on the map */
             this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
@@ -159,7 +190,11 @@ class Rooms {
 
         for (var x = 0; x < rm.exits.length; x++ ) {
             // $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
-            $('#exits ul').append($('<li />').html(rm.exits[x]));
+            var name = rm.exits[x];
+            if(rm.links[name]) {
+                name += " <span>(" + rm.links[name].name + ")</span>";
+            }
+            $('#exits ul').append($('<li />').html(name));
         }
 
         this._activeRoom = rm;
@@ -240,15 +275,6 @@ class Rooms {
     }
 
     private registerEvents() {
-        // var that = this;
-        // $('#nav button').on('click', function(evt) {
-        //     if($(this).hasClass('disabled')) {
-        //         return;
-        //     }
-        //     var dot = $(this).data('dir'); // dot = 'direction of travel'
-        //     that.onDirectionSelected(dot);
-        // });
-
         $event.bind('gotoRoom', this._gotoRoom);
         $event.bind('dump', this._onDataDump);
     }

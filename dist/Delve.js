@@ -2,8 +2,8 @@ var DelveMap = (function () {
     function DelveMap() {
         var _this = this;
         this._level = 1;
-        this._onAddLevel = function (e) {
-            _this.addLevel(_this._level + 1);
+        this._onGotoLevel = function (e) {
+            _this.onGotoLevel(_this._level + 1);
         };
         this.init();
         console.log('map: ', this._map);
@@ -17,19 +17,26 @@ var DelveMap = (function () {
         };
 
         $event.bind('togglemap', toggle);
+        $event.bind('gotoLevel', this._onGotoLevel);
         $('#BTN_MAP_TOGGLE').on('click', toggle);
-        $('#BTN_MAP_LEVEL').on('click', this._onAddLevel);
     };
 
-    DelveMap.prototype.addLevel = function (lvl) {
-        var map = $('#map');
-        var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
-        var cont = $('<div />');
-        art.append(cont);
-        $(map).append(art);
+    DelveMap.prototype.onGotoLevel = function (lvl) {
+        var g = $('#map article[level="' + lvl + '"] div');
+
+        if (g.length == 0) {
+            var map = $('#map');
+            var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
+            var cont = $('<div />');
+            art.append(cont);
+            $(map).append(art);
+            g = $('#map article[level="' + lvl + '"] div');
+        }
+        this._map = g;
+        console.log('this._map: ', this._map);
     };
     DelveMap.prototype.init = function () {
-        this.addLevel(this._level);
+        this.onGotoLevel(this._level);
         this._map = $('#map article[level="1"] div');
     };
 
@@ -91,6 +98,18 @@ var DelveMap = (function () {
                 txt = '&mdash;';
             }
             marker.css('left', left);
+            if (rm.exits[x] === 'down') {
+                top = yPos + 20;
+                left = xPos - 59;
+                txt = '/';
+            }
+            if (rm.exits[x] === 'up') {
+                top = yPos - 20;
+                left = xPos + 61;
+                txt = '/';
+            }
+            marker.css('left', left);
+            marker.css('top', top);
             marker.html(txt);
             $(this._map).append(marker);
         }
@@ -144,7 +163,7 @@ var Events = (function () {
 var Modal = (function () {
     function Modal(obj) {
         this._modalPanel = $('<div>').attr('id', 'modal').addClass('eventPanel').css('opacity', '0');
-        this.container = $('<div />').addClass('modal');
+        this.container = $('<div />').attr('id', 'content');
         this.title = $('<h3 />');
         this.msg = $('<div />');
         this.close = $('<button />').html('Close');
@@ -177,11 +196,11 @@ var Modal = (function () {
         };
         var that = this;
 
-        $('<div>').addClass('title').appendTo(this._modalPanel);
-        $('<div>').attr('id', 'message').appendTo(this._modalPanel);
-        $('<div>').attr('id', 'buttons').appendTo(this._modalPanel);
+        $('<div>').addClass('title').appendTo(this.container);
+        $('<div>').attr('id', 'message').appendTo(this.container);
+        $('<div>').attr('id', 'buttons').appendTo(this.container);
 
-        var title = $('.title', this._modalPanel), desc = $('#message', this._modalPanel), btns = $('#buttons', this._modalPanel), buttons, i;
+        var title = $('.title', this.container), desc = $('#message', this.container), btns = $('#buttons', this.container), buttons, i;
 
         console.log('title: ', title);
 
@@ -204,6 +223,7 @@ var Modal = (function () {
                 } }).appendTo(btns);
         }
 
+        this._modalPanel.append(this.container);
         $('body').append(this._modalPanel);
 
         this.registerEvents();
@@ -252,7 +272,7 @@ var Rooms = (function () {
         this._rooms = [];
         this._activeRoom = null;
         this._startRoom = null;
-        this._currentpositionSet = { x: 0, y: 0, z: 0 };
+        this._gridCoord = { x: 0, y: 0, z: 0 };
         this._mapGrid = [];
         this._gotoRoom = function (e) {
             _this.onDirectionSelected(e);
@@ -278,6 +298,7 @@ var Rooms = (function () {
         for (var i = 0; i < len; i++) {
             console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
+        console.log('current grid coords: ', this._gridCoord);
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
@@ -308,8 +329,9 @@ var Rooms = (function () {
             delete this._deck[t];
         }
 
-        len = this._rooms.length + 1;
+        len = (this._rooms.length + 1) * 2;
         offset = Math.floor(len / 2);
+        this._gridCoord.x = this._gridCoord.y = offset;
         this._mapGrid = this.generateGrid(len);
         this._mapGrid[offset][offset] = this._startRoom.id;
 
@@ -317,7 +339,7 @@ var Rooms = (function () {
 
         this._map.addRoom(this._startRoom, null, null);
 
-        this._startRoom.position = this._currentpositionSet;
+        this._startRoom.position = this._gridCoord;
         this.renderRoom(this._startRoom);
     };
 
@@ -341,9 +363,6 @@ var Rooms = (function () {
     };
 
     Rooms.prototype.onDirectionSelected = function (dot) {
-        console.log('direction: ', dot);
-        console.log('active room: ', this._activeRoom[dot]);
-
         if (this._activeRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
             return;
@@ -360,26 +379,48 @@ var Rooms = (function () {
             if (!rm) {
                 $event.emit('error', 'Failed to load new room!');
             }
+
             this._activeRoom.links[dot] = rm;
-            console.log('links: ', rm);
+
             rm.links[this.getPolar(dot)] = this._activeRoom;
 
             switch (dot) {
                 case 'north':
-                    this._currentpositionSet.y++;
+                    this._gridCoord.y--;
                     break;
                 case 'south':
-                    this._currentpositionSet.y--;
+                    this._gridCoord.y++;
                     break;
                 case 'east':
-                    this._currentpositionSet.x++;
+                    this._gridCoord.x++;
                     break;
                 case 'west':
-                    this._currentpositionSet.x--;
+                    this._gridCoord.x--;
                     break;
             }
 
-            rm.position = this._currentpositionSet;
+            this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
+
+            for (var i = 0; i < rm.exits.length; i++) {
+                var e = rm.exits[i];
+                var or = '';
+                if (e == this.getPolar(dot)) {
+                    continue;
+                }
+                if (e == 'north') {
+                    or = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                }
+                if (e == 'south') {
+                    or = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                }
+                if (e == 'east') {
+                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                }
+                if (e == 'west') {
+                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                }
+                console.log(e + ": ", or);
+            }
 
             this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
@@ -397,7 +438,11 @@ var Rooms = (function () {
         $('#display #desc').html(rm.desc);
 
         for (var x = 0; x < rm.exits.length; x++) {
-            $('#exits ul').append($('<li />').html(rm.exits[x]));
+            var name = rm.exits[x];
+            if (rm.links[name]) {
+                name += " <span>(" + rm.links[name].name + ")</span>";
+            }
+            $('#exits ul').append($('<li />').html(name));
         }
 
         this._activeRoom = rm;
@@ -607,7 +652,7 @@ var Parser = (function () {
             'go': [
                 "You can't go in that direction",
                 "That's impossible.",
-                "'{%s}'' isn't a valid exit.",
+                "'{%s}' isn't a valid exit.",
                 "Try again, you can't go that way.",
                 "Seriously, you have a map..."
             ],
@@ -643,7 +688,7 @@ var Parser = (function () {
     Parser.prototype.handleToggleCommand = function (args) {
         var objects = ['map', 'controls', 'help'];
         var toggle = args[0];
-        console.log('toggle: ', toggle);
+
         if (objects.indexOf(toggle) === -1) {
             this.declareNoJoy();
         } else {
@@ -661,7 +706,6 @@ var Parser = (function () {
         if (validDirections.indexOf(dot) === -1) {
             this.declareCantDo(cmd, dot);
         } else {
-            console.log('going: ', dot);
             $event.emit('gotoRoom', dot);
         }
     };

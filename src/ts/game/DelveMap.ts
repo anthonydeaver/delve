@@ -5,7 +5,7 @@ class DelveMap {
 	private _map: HTMLElement;
 	private _level: number = 1;
 
-	private _onAddLevel = (e) => { this.addLevel(this._level + 1); }
+	private _onGotoLevel = (e) => { this.onGotoLevel(this._level + 1); }
 
 	private registerEvents() {
 		$event.emit('log', 'registering map events');
@@ -15,21 +15,29 @@ class DelveMap {
 		};
 
 		$event.bind('togglemap', toggle);
+		$event.bind('gotoLevel', this._onGotoLevel);
 		$('#BTN_MAP_TOGGLE').on('click', toggle);
-		$('#BTN_MAP_LEVEL').on('click', this._onAddLevel);
 	}
 
-	private addLevel(lvl: number) {
+	private onGotoLevel(lvl: number) {
 		//this._level++;
-		var map = $('#map');
-		var art = $('<article />').attr('id','wrapper').attr('level',lvl);
-		var cont = $('<div />');
-		art.append(cont);
-		$(map).append(art);
+		var g = $('#map article[level="'+ lvl+'"] div');
+		//console.log
+		if(g.length == 0) {
+			// lvl = this._level++
+			var map = $('#map');
+			var art = $('<article />').attr('id','wrapper').attr('level',lvl);
+			var cont = $('<div />');
+			art.append(cont);
+			$(map).append(art);
+			g = $('#map article[level="'+ lvl+'"] div');
+		}
+		this._map = g;//$('#map article[level="'+ lvl+'"] div');
+		console.log('this._map: ', this._map);
 
 	}
 	private init() {
-		this.addLevel(this._level);
+		this.onGotoLevel(this._level);
 		this._map = $('#map article[level="1"] div');
 	}
 
@@ -80,6 +88,10 @@ class DelveMap {
 			if(rm.exits[x] === 'west') { left = xPos - 59; txt = '&mdash;'; }
 			if(rm.exits[x] === 'east') { left = xPos + 61; txt = '&mdash;'; }
 			marker.css('left', left);
+			if(rm.exits[x] === 'down') { top = yPos + 20; left = xPos - 59; txt = '/'; }
+			if(rm.exits[x] === 'up') { top = yPos - 20; left = xPos + 61; txt = '/'; }
+			marker.css('left', left);
+			marker.css('top', top);
 			marker.html(txt);
 			$(this._map).append(marker);
         }
