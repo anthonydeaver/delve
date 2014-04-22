@@ -396,30 +396,57 @@ var Rooms = (function () {
 
             var dirs = ['north', 'south', 'east', 'west'];
             for (var i = 0; i < dirs.length; i++) {
-                var e = dirs[i];
-                var or = '';
-                if (e == this.getPolar(dot)) {
+                var testDirection = dirs[i];
+                var testPolar = this.getPolar(testDirection);
+                var tRoom = '';
+                if (testDirection == this.getPolar(dot)) {
                     continue;
                 }
-                if (e == 'north') {
-                    or = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                switch (testDirection) {
+                    case 'north':
+                        tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                        break;
+                    case 'south':
+                        tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                        break;
+                    case 'east':
+                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                        break;
+                    case 'west':
+                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                        break;
                 }
-                if (e == 'south') {
-                    or = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                console.log('test room: ', tRoom);
+                tRoom = this._deck[tRoom];
+                if (tRoom) {
+                    if (this.roomHasExit(tRoom, testPolar)) {
+                        if (Math.round(Math.random())) {
+                            console.log('add an exit');
+                        } else {
+                            console.log('attempt to shift');
+                        }
+                    } else {
+                        if (Math.round(Math.random())) {
+                            console.log('remove our exit');
+                        } else {
+                            console.log('attempt to shift');
+                        }
+                    }
                 }
-                if (e == 'east') {
-                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
-                }
-                if (e == 'west') {
-                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
-                }
-
-                console.log(e + ": ", or);
             }
 
             this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
         }
+    };
+
+    Rooms.prototype.roomHasExit = function (rm, exit) {
+        for (var i = 0; i < rm.exits.length; i++) {
+            if (rm.exits[i] === exit) {
+                return true;
+            }
+        }
+        return false;
     };
 
     Rooms.prototype.renderRoom = function (rm) {

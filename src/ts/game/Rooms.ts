@@ -163,29 +163,53 @@ class Rooms {
             */
             var dirs = ['north', 'south','east','west'];
             for( var i = 0; i < dirs.length; i++) {
-                var e = dirs[i];
-                var or = '';
-                if(e == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
-                if(e == 'north') {
-                    or = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                var testDirection = dirs[i];
+                var testPolar =this.getPolar(testDirection);
+                var tRoom = '';
+                if(testDirection == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
+                switch(testDirection) {
+                    case 'north':
+                        tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                        break;
+                    case 'south':
+                        tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                        break;
+                    case 'east':
+                        tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
+                        break;
+                    case 'west':
+                        tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x + 1];
+                        break;
                 }
-                if(e == 'south') {
-                    or = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
-                }
-                if(e == 'east') {
-                    or = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
-                }
-                if(e == 'west') {
-                    or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
-                }
+                console.log('test room: ', tRoom);
+                tRoom = this._deck[tRoom];
+                if(tRoom) {
+                    // If test room has an exit in our direction
+                    if(this.roomHasExit(tRoom, testPolar)) {
+                        // Adjacent room has an exit in our direction, what to do...
+                        if(Math.round(Math.random())) { console.log('add an exit')}
+                        else { console.log('attempt to shift'); }
+                    } else {
+                        // Adjacent room do not have an exit in our direction, what to do...
+                        if(Math.round(Math.random())) { console.log('remove our exit')}
+                        else { console.log('attempt to shift'); }
+                    }
 
-                console.log(e + ": ", or);
+                }
+                //console.log(e + ": ", or);
             }            
                 
             /* draw on the map */
             this._map.addRoom(rm, dot, this._activeRoom.id);
             this.renderRoom(rm);
         }
+    }
+
+    private roomHasExit(rm, exit) {
+        for ( var i = 0; i < rm.exits.length; i++) {
+            if(rm.exits[i] === exit) { return true;}
+        }
+        return false;
     }
     /*
         TODO:
