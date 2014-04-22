@@ -75,6 +75,24 @@
          "hasTreasure":true,
          "start":false
       },
+      "long_hall":{
+         "name":"Long Hall",
+         "id":"long_hall",
+         "desc":"Lots of family photos. At least I think they are family",
+         "exits":[
+            "south",
+            "east"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":false,
+         "hasTreasure":false,
+         "start":false
+      },
       "office":{
          "name":"Office",
          "id":"office",
