@@ -63,8 +63,7 @@
          "desc":"No Ms. Scarlet! Please don't!",
          "exits":[
             "south",
-            "east",
-            "up"
+            "east"
          ],
          "links":{
 
@@ -76,14 +75,13 @@
          "hasTreasure":true,
          "start":false
       },
-      "upstairs_hall":{
-         "name":"Upstairs Hall",
-         "id":"upstairs_hall",
+      "long_hall":{
+         "name":"Long Hall",
+         "id":"long_hall",
          "desc":"Lots of family photos. At least I think they are family",
          "exits":[
             "south",
-            "east",
-            "down"
+            "east"
          ],
          "links":{
 

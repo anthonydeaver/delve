@@ -22,9 +22,9 @@ body {
 #rightCol, #leftCol {
 	width: 400px;
 	float: left;
-	margin-right: 50px;
+	margin-right: 20px;
 }
-section { padding: 10px; }
+section {  }
 #display, #map, #nav, #nav header, #feedback, #command { 
 	float: left; 
 	background: rgba(255,255,255,0.3);
@@ -33,9 +33,11 @@ section { padding: 10px; }
 	border: 2px solid rgba(255,255,255,0.8);  
 	height: auto; 
 	position: relative;
+	padding: 10px;
+	width: calc(~"100% - 22px");
 }
 #display {
-	width: 100%;
+	
 	height: 600px;
 	header {
 		font-size: 24px; 
@@ -57,13 +59,13 @@ section { padding: 10px; }
 	display: none;
 }
 #feedback {
-	width: 400px;
+	// width: 400px;
 	height: 200px;
 	overflow: hidden;
 	// overflow-y: auto;
 }
 #command {
-	width: 400px;
+	// width: 400px;
 	height:50px;
 	clear: both;
 	margin-top: 25px;
@@ -80,7 +82,7 @@ section { padding: 10px; }
 	}
 
 	input{
-		width: 385px;
+		width: calc(~"100% - 14px");
 		border: none;
 		// background-color: white;
 		background-color: transparent;
@@ -147,11 +149,12 @@ section { padding: 10px; }
 
 	header {
 		height: 15px;
+		width: 80px;
 		padding: 10px;
 		-webkit-transform: rotate(-90deg);
 		border-radius: 10px 10px 0px 0px;
-		left: -69px;
-		top:20px;
+		left: -82px;
+		top: 30px;
 	}
 }
 

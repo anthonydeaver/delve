@@ -12,6 +12,7 @@ class Rooms {
     private _gridCoord = {x:0, y:0, z:0};
     private _mapGrid: any = [];
 
+
     private _gotoRoom = (e) => { this.onDirectionSelected(e); }
     private _onDataDump = (e) => { this.onDataDump(); }
 
@@ -58,7 +59,11 @@ class Rooms {
             delete this._deck[t];
 
         }
-
+        /*
+            The grid is twice as wide as the number of rooms simply to account for the (remote)
+            possibility that all the rooms lay out in a completely horizontal pattern.
+             The chances of it happening are close to nil, but....
+        */
         // add 1 to the length to accoount for the starting room.
         len = (this._rooms.length + 1) * 2;
         offset = Math.floor(len / 2);
@@ -140,30 +145,40 @@ class Rooms {
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
 
-            // Go through remaining exits and look for existing rooms on the grid in that
-            // direction and make the necessary links.
-            // If the adjoining room doesn't have an exit to match, remove the new rooms 
-            // corresponding exit. Might cause some rooms to only have a single entrance/exit
-            for( var i = 0; i < rm.exits.length; i++) {
-                var e = rm.exits[i];
+            /*
+             Go through remaining exits and look for existing rooms on the grid in that
+             direction and make the necessary links.
+             If the adjoining room doesn't have an exit to match, remove the new rooms 
+             corresponding exit. Might cause some rooms to only have a single entrance/exit
+            */
+
+            /*
+                - look at room in all 4 adjenctnt locations
+                - if adjacent room doesn't have a link, remove this rooms cooresponding exit. Or,
+                - if adjacent room doesn't have a link, shift this rooms cooresponding exit to another available direction.
+
+                - if adjacent room has an exit but this room doesn't, add one to this room. Or,
+                - if adjacent room has an exit, attempt to relocate one this rooms exits from another, unlinked, direction.
+
+            */
+            var dirs = ['north', 'south','east','west'];
+            for( var i = 0; i < dirs.length; i++) {
+                var e = dirs[i];
                 var or = '';
                 if(e == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
                 if(e == 'north') {
-                    // check up one block on the y axis (technically -1);
                     or = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
                 }
                 if(e == 'south') {
-                    // check up one block on the y axis (technically -1);
                     or = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
                 }
                 if(e == 'east') {
-                    // check up one block on the y axis (technically -1);
                     or = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
                 }
                 if(e == 'west') {
-                    // check up one block on the y axis (technically -1);
                     or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
                 }
+
                 console.log(e + ": ", or);
             }            
                 

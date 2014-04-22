@@ -5,8 +5,8 @@ var DelveMap = (function () {
         this._onGotoLevel = function (e) {
             _this.onGotoLevel(_this._level + 1);
         };
-        this.init();
-        console.log('map: ', this._map);
+        this.onGotoLevel(this._level);
+        this._map = $('#map article[level="1"] div');
         this.registerEvents();
     }
     DelveMap.prototype.registerEvents = function () {
@@ -23,7 +23,6 @@ var DelveMap = (function () {
 
     DelveMap.prototype.onGotoLevel = function (lvl) {
         var g = $('#map article[level="' + lvl + '"] div');
-
         if (g.length == 0) {
             var map = $('#map');
             var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
@@ -33,11 +32,6 @@ var DelveMap = (function () {
             g = $('#map article[level="' + lvl + '"] div');
         }
         this._map = g;
-        console.log('this._map: ', this._map);
-    };
-    DelveMap.prototype.init = function () {
-        this.onGotoLevel(this._level);
-        this._map = $('#map article[level="1"] div');
     };
 
     DelveMap.prototype.addRoom = function (rm, direction, target) {
@@ -51,7 +45,6 @@ var DelveMap = (function () {
             xPos = parseInt($(t).css('left'), 10);
             yPos = parseInt($(t).css('top'), 10);
         }
-
         switch (direction) {
             case 'north':
                 yPos -= 40;
@@ -401,8 +394,9 @@ var Rooms = (function () {
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
 
-            for (var i = 0; i < rm.exits.length; i++) {
-                var e = rm.exits[i];
+            var dirs = ['north', 'south', 'east', 'west'];
+            for (var i = 0; i < dirs.length; i++) {
+                var e = dirs[i];
                 var or = '';
                 if (e == this.getPolar(dot)) {
                     continue;
@@ -419,6 +413,7 @@ var Rooms = (function () {
                 if (e == 'west') {
                     or = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
                 }
+
                 console.log(e + ": ", or);
             }
 

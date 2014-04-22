@@ -20,9 +20,7 @@ class DelveMap {
 	}
 
 	private onGotoLevel(lvl: number) {
-		//this._level++;
 		var g = $('#map article[level="'+ lvl+'"] div');
-		//console.log
 		if(g.length == 0) {
 			// lvl = this._level++
 			var map = $('#map');
@@ -32,13 +30,7 @@ class DelveMap {
 			$(map).append(art);
 			g = $('#map article[level="'+ lvl+'"] div');
 		}
-		this._map = g;//$('#map article[level="'+ lvl+'"] div');
-		console.log('this._map: ', this._map);
-
-	}
-	private init() {
-		this.onGotoLevel(this._level);
-		this._map = $('#map article[level="1"] div');
+		this._map = g;
 	}
 
 	public addRoom(rm: any, direction: any, target) {
@@ -52,7 +44,6 @@ class DelveMap {
 			xPos = parseInt($(t).css('left'), 10);
 			yPos = parseInt($(t).css('top'), 10);
 		}
-		//console.log('target: ', yPos);
         switch(direction) {
             case 'north':
                 yPos -= 40;
@@ -72,9 +63,9 @@ class DelveMap {
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
         var sp = $('<span />').attr('id', rm.id).attr('type','room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
        	$(this._map).append(sp);		
+
         // Add in the direction markers
         this.addExits(yPos, xPos, rm);
-
 	}
 
 	private addExits(yPos, xPos, rm) {
@@ -113,9 +104,8 @@ class DelveMap {
 	}
 
 	constructor() {
-		//this._map = $('#map article[level="'+ this._level + '"] div');
-		this.init();
-		console.log('map: ', this._map);
+		this.onGotoLevel(this._level);
+		this._map = $('#map article[level="1"] div');
 		this.registerEvents();
 	}	
 }
