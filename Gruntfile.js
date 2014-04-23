@@ -60,7 +60,7 @@ module.exports = function(grunt) {
       }
     },
     qunit: {
-      files: ['text/**/*.html']
+      files: ['test/*.html']
     },
     jshint: {
       files: ['Gruntfile.js', 'src/js/**/*.js',  '!src/js/libs/*.js', '!src/js/editor/*.js', 'test/js/**/*.js'],
@@ -97,7 +97,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-typescript');
-  // grunt.loadNpmTasks('grunt-contrib-qunit');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
