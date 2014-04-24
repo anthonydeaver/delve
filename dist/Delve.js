@@ -276,12 +276,21 @@ var Rooms = (function () {
         this._map = new DelveMap();
         var that = this;
         var data1;
-        $.getJSON('/environs/' + locale + '/rooms.json', function (data) {
+        console.log('getting: ');
+        console.log('environs/' + locale + '/rooms.json');
+
+        $.getJSON('environs/' + locale + '/rooms.json', function (data) {
             that._deck = data.rooms;
 
             that.setUp();
 
             that.registerEvents();
+        }).done(function () {
+            console.log('success');
+        }).fail(function (e) {
+            console.log('error: ', e);
+        }).always(function () {
+            console.log("complete");
         });
     }
     Rooms.prototype.onDataDump = function () {
@@ -305,6 +314,7 @@ var Rooms = (function () {
     };
 
     Rooms.prototype.setUp = function () {
+        console.log('Rooms: setup()');
         var len = 0, offset = 0;
         for (var i in this._deck) {
             if (this._deck[i].start) {
@@ -536,6 +546,11 @@ var Rooms = (function () {
     Rooms.prototype.registerEvents = function () {
         $event.bind('gotoRoom', this._gotoRoom);
         $event.bind('dump', this._onDataDump);
+    };
+
+    Rooms.prototype.getStartingRoom = function () {
+        console.log('get room');
+        return this._startRoom;
     };
     return Rooms;
 })();

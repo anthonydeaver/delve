@@ -40,6 +40,7 @@ class Rooms {
     }
 
     private setUp() {
+        console.log('Rooms: setup()');
         var len = 0, offset = 0;
         for(var i in this._deck) {
             if(this._deck[i].start) {
@@ -276,7 +277,6 @@ class Rooms {
         return rm;
     }
 
-    // Public Methods
     /*
     'draw' as in draw from a deck...
      
@@ -318,17 +318,32 @@ class Rooms {
         $event.bind('dump', this._onDataDump);
     }
 
+    // Public Methods
+    public getStartingRoom() {
+        console.log('get room');
+        return this._startRoom;
+    }
+
     constructor(locale) {
         this._map = new DelveMap();
         var that = this;
         var data1;
-        $.getJSON('/environs/' + locale + '/rooms.json', function(data) {
+        console.log('getting: ');
+        console.log('environs/' + locale + '/rooms.json');
+        // $.getJSON('/environs/' + locale + '/rooms.json', function(data) {
+        $.getJSON('environs/' + locale + '/rooms.json', function(data) {
             that._deck = data.rooms;
 
             // Find the starting point of the delve
             that.setUp();
 
             that.registerEvents();
-        });
+        }).done(function() {
+            console.log('success');
+            }).fail(function(e) {
+            console.log('error: ', e);
+            }).always(function() {
+    console.log( "complete" );
+  });
     }
 }
