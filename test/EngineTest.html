@@ -7,12 +7,17 @@
 		<script src="../dist/Delve.js"></script>
 	</head>
 	<body>
-	<divid="feedback"></div>
 		<div id="qunit"></div>
 	  	<div id="qunit-fixture">
 		    <span>lame test markup</span>
 		    <span>normal test markup</span>
 		    <span>awesome test markup</span>
+		    <div id="qunit-fixture">
+		    	<div id="feedback"></div>
+			</div>
 	  	</div>
+	  	<script>
+	  	var $event = new Events();
+	  </script>
 	</body>
 </html>

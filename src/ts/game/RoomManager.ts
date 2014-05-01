@@ -1,13 +1,11 @@
-/// <reference path="Utils.ts" />
-/// <reference path="Engine.ts" />
 declare var $;
 class RoomManager {
 
     private _rooms: any = [];
-    private _deck: any;
+    private _deck: any = {};
     private _map: any;
-    private _activeRoom: any = null;
-    private _startRoom: any = null;
+    private _activeRoom: Room = null;
+    private _startRoom: Room = null;
     private _gridCoord = {x:0, y:0, z:0};
     private _mapGrid: any = [];
 
@@ -27,7 +25,7 @@ class RoomManager {
     }
 
     private resetGame() {
-        this._activeRoom = '';
+        this._activeRoom = null;
         this._rooms = [];
         this._mapGrid = null;
         for(var i in this._deck) {
@@ -74,11 +72,14 @@ class RoomManager {
         this._rooms = Utils.shuffle(this._rooms);
         // insert into map
         // this._map.setStartPoint(this._startRoom);
-        this._map.addRoom(this._startRoom, null, null);
+        // this._map.addRoom(this._startRoom, null, null);
 
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
         this._startRoom.position = this._gridCoord;
-        this.renderRoom(this._startRoom);
+        // this._startRoom.render();
+        this._activeRoom = this._startRoom;
+        this._activeRoom.render();
+        // this.renderRoom(this._startRoom);
     }
 
     // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
@@ -114,12 +115,13 @@ class RoomManager {
         //First, check the current room for active connections for the selected direction
         if(this._activeRoom.links[dot]) {
             // already have a connection
-            this.renderRoom(this._activeRoom.links[dot]);
+            // this.renderRoom(this._activeRoom.links[dot]);
+            this._activeRoom.links[dot].render();
         } else {
             if(!this._rooms.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
-            rm = this.drawRoom(dot);
+            rm = this.selectNewRoom(dot);
             if(!rm) { $event.emit('error','Failed to load new room!'); }
 
             // Set up the links from the exiting room to the entering room and visa-versa
@@ -165,7 +167,7 @@ class RoomManager {
             for( var i = 0; i < dirs.length; i++) {
                 var testDirection = dirs[i];
                 var testPolar =this.getPolar(testDirection);
-                var tRoom = '';
+                var tRoom = 'xxx';
                 if(testDirection == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
                 switch(testDirection) {
                     case 'north':
@@ -182,10 +184,11 @@ class RoomManager {
                         break;
                 }
                 console.log('test room: ', tRoom);
-                tRoom = this._deck[tRoom];
-                if(tRoom) {
+                var iRoom: Room = this._deck[tRoom];
+                if(iRoom) {
                     // If test room has an exit in our direction
-                    if(this.roomHasExit(tRoom, testPolar)) {
+                    // if(this.roomHasExit(tRoom, testPolar)) {
+                    if(iRoom.hasExit(testPolar)) {
                         // Adjacent room has an exit in our direction, what to do...
                         if(Math.round(Math.random())) { console.log('add an exit')}
                         else { console.log('attempt to shift'); }
@@ -200,46 +203,12 @@ class RoomManager {
             }            
                 
             /* draw on the map */
-            this._map.addRoom(rm, dot, this._activeRoom.id);
-            this.renderRoom(rm);
+            //this._map.addRoom(rm, dot, this._activeRoom.id);
+            // this.renderRoom(rm);
+            this._activeRoom.render();
         }
     }
 
-    private roomHasExit(rm, exit) {
-        for ( var i = 0; i < rm.exits.length; i++) {
-            if(rm.exits[i] === exit) { return true;}
-        }
-        return false;
-    }
-    /*
-        TODO:
-        - update active room to have connections to the new room, vice-versa for new room.
-        - trigger map update
-            - possible fire a new room event and let the engine handle this?
-     */ 
-    private renderRoom(rm) {
-        $('#map span[type="room"]').removeClass('current');
-        $('#exits ul').html('');
-        $('[data-dir]').each(function(){
-            $(this).removeClass();
-            $(this).addClass('disabled');
-        });
-        $('#display header').html(rm.name);
-        $('#display #desc').html(rm.desc);
-
-        for (var x = 0; x < rm.exits.length; x++ ) {
-            // $('[data-dir="' + rm.exits[x] + '"]').removeClass('disabled');
-            var name = rm.exits[x];
-            if(rm.links[name]) {
-                name += " <span>(" + rm.links[name].name + ")</span>";
-            }
-            $('#exits ul').append($('<li />').html(name));
-        }
-
-        this._activeRoom = rm;
-        console.log('id: ', rm.id);
-        $('#map span[type="room"]#' + rm.id).addClass('current');
-    }
 
     private checkExits(rm, e) {
         var entrance = this.getPolar(e);
@@ -252,38 +221,17 @@ class RoomManager {
     }
 
     /*
-        This rotates the rooms exits clockwise. North becomes East, East becomes South, etc...
-     */
-    private rotateRoomExits(rm) {
-        console.log('rotating');
-        for (var i = 0; i < rm.exits.length; i++ ) {
-            console.log('loop: ', rm.exits[i]);
-            switch(rm.exits[i]) {
-                case 'north':
-                    rm.exits[i] = 'east';
-                    break;
-                case 'east':
-                    rm.exits[i] = 'south';
-                    break;
-                case 'south':
-                    rm.exits[i] = 'west';
-                    break;
-                case 'west':
-                    rm.exits[i] = 'north';
-                    break;
-            }
-        }
-        return rm;
-    }
-
-    /*
     'draw' as in draw from a deck...
      
     - get room from top of 'deck'
     - if no matching entrance / exit, rotate 
     - no match: Error. !! Should never happen !!
      */
-    private drawRoom(e: string) {
+    /**
+     * Selects a new froom from the _deck.
+     * @param {string} e [description]
+     */
+    private selectNewRoom(e: string) {
         if(!this._rooms.length) {
             $event.emit('error', 'no more rooms');
         }
@@ -298,9 +246,11 @@ class RoomManager {
 
         function memoizer(rm) {
             var recur = function(d) {
-                rm = that.rotateRoomExits(rm);
+                rm.rotateExits();
+                //rm = that.rotateRoomExits(rm);
                 // var result = that.checkExits(rm, d);
-                if(!that.checkExits(rm, d)) {
+                // if(!that.checkExits(rm, d)) {
+                if(!rm.hasExit(that.getPolar(d))) {
                     rm = recur(d);
                 }
                 return rm
@@ -312,37 +262,37 @@ class RoomManager {
         return test(e);
     }
 
+    private init() {
+
+    }
+
     private registerEvents() {
         $event.bind('gotoRoom', this._gotoRoom);
         $event.bind('dump', this._onDataDump);
     }
 
     // Public Methods
-    public getStartingRoom() {
-        console.log('get room');
+    public getStartRoom() {
         return this._startRoom;
     }
 
-    constructor(locale) {
-        // this._map = new DelveMap();
+    constructor(filename, handler?: any) {
+        // The handler callback is strictly for unit testing
         var that = this;
-        var data1;
-        console.log('getting: ');
-        console.log('environs/' + locale + '/rooms.json');
-        // $.getJSON('/environs/' + locale + '/rooms.json', function(data) {
-        $.getJSON('environs/' + locale + '/rooms.json', function(data) {
-            that._deck = data.rooms;
-
-            // Find the starting point of the delve
+        $.getJSON(filename, function(data) {
+            var rooms = data.rooms;
+            for(var idx in rooms) {
+                that._deck[idx] = new Room(rooms[idx]);
+            }
+            console.log('test: ', data);
             that.setUp();
 
             that.registerEvents();
         }).done(function() {
-            console.log('success');
-            }).fail(function(e) {
-            console.log('error: ', e);
-            }).always(function() {
-    console.log( "complete" );
-  });
+            if(handler) handler();
+        }).fail(function() {
+            console.log('failed'); 
+            if(handler) handler();
+        });
     }
 }

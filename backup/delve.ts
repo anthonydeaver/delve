@@ -1,4 +1,4 @@
-/// <reference path="Rooms.ts" />
+/// <reference path="RoomManager.ts" />
 /// <reference path="player.ts" />
 /// <reference path="Parser.ts" />
 /// <reference path="Utils.ts" />
@@ -17,7 +17,7 @@ class DelveEngine {
 	private _player: Player;
 	private _parser: Parser;
 	private _modal: Modal;
-	private _roomManager: Rooms;
+	private _roomManager: RoomManager;
 	private _version:string =  '0.0.1';
 
 	private _onShowHelp = (e) => this.onShowHelp(e);
@@ -99,7 +99,7 @@ class DelveEngine {
 		this._world = this._mappings[o.world || '0001'];
 		new Player();
 		this._parser = new Parser(this);
-		new Rooms(this._world);
+		new RoomManager(this._world);
 
 		this.registerEvents();
 

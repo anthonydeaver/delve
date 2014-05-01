@@ -8,6 +8,7 @@ class Room {
 	private _hasMonster: boolean;
 	private _hasItem: boolean;
 	private _start: boolean = false;
+    private _position = {};
 
 	get name() {
 		return this._name;
@@ -17,14 +18,35 @@ class Room {
 		return this._id;
 	}
 
-    public hasExit(exit) {
+    get position() {
+        return this._position;
+    }
+
+    set position(o) {
+        this._position = o;
+    } 
+
+    get exits() {
+        return this._exits;
+    }
+
+    get links() {
+        return this._links;
+    }
+
+    get start() {
+        return this._start;
+    }
+
+    hasExit(exit) {
         for ( var i = 0; i < this._exits.length; i++) {
-            if(this._exits[i] === exit) { return true;}
+            if(this._exits[i] === exit) { return true; }
         }
         return false;
     }
 	
-    public render(rm) {
+    render() {
+        console.log('rendering: ', this.id);;
         $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function(){
@@ -43,14 +65,11 @@ class Room {
             $('#exits ul').append($('<li />').html(name));
         }
 
-        console.log('id: ', this._id);
         $('#map span[type="room"]#' + this._id).addClass('current');
     }
 
-    public rotateExits(rm) {
-        console.log('rotating');
+    rotateExits(rm) {
         for (var i = 0; i < this._exits.length; i++ ) {
-            console.log('loop: ', this._exits[i]);
             switch(this._exits[i]) {
                 case 'north':
                     this._exits[i] = 'east';

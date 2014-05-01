@@ -1,12 +1,10 @@
-/// <reference path="Utils.ts" />
-/// <reference path="delve.ts" />
 
 declare var $;
 declare var $event;
 
-class Parser {
+class Parser implements IGame {
+	private _console;
 	private _commandBuffer = [];
-	private _engine: Engine;
 	private _commands: any = ['go','look','examine','take','use', 'help'];
 	private nojoy = [
 		"I have no idea what your are asking.",
@@ -39,17 +37,17 @@ class Parser {
 	private declareNoJoy() {
 		this.nojoy = Utils.shuffle(this.nojoy);
 		this.updateConsole(this.nojoy[0]);
+		// return this.nojoy[0];
 	}
 
 	private updateConsole(msg) {
-		var _console = $('#feedback');
-		$(_console).append('<br /><span>' + msg + '</span>');
-		$(_console)[0].scrollTop = $(_console)[0].scrollHeight;
+		
+		this._console.append('<br /><span>' + msg + '</span>');
+		this._console[0].scrollTop = this._console.scrollHeight;
 	}
 
 	private handleShowCommand(args: any) {
 	}
-
 
 	private handleToggleCommand(args: any[]) {
 		var objects = ['map', 'controls', 'help'];
@@ -69,26 +67,34 @@ class Parser {
 		if(validDirections.indexOf(dot) === -1) {
 			this.declareCantDo(cmd,dot);
 		} else {
-			// console.log('going: ', dot);
 			$event.emit('gotoRoom',dot);
 		}
+	}
+
+	private registerEvents() {
+		var that = this;
+		$event.bind('nojoy', this.updateConsole);
+		$event.bind('dump', this._onDataDump);
+
+	   $('#command input').on('keypress', function(e) {
+	     if(e.which === 13) {
+	       var val = $(this).val();
+	       $(this).val('');
+	       that.execute(val);
+	     }
+	   });
 
 	}
 
-	private onDataDump() {
+	// Public
+	public onDataDump() {
 		console.log('####################');
 		console.log('Command Buffer:');
 		console.log(this._commandBuffer);
 		console.log('####################');
 	}
 
-	private registerEvents() {
-		$event.bind('nojoy', this.updateConsole);
-		$event.bind('dump', this._onDataDump);
-	}
-
 	public execute(val) {
-		$event.emit('log', 'parsing command');
 		this._commandBuffer.push(val);
 		var args = val.split(' ');
 		var cmd = args.shift().toLowerCase();
@@ -112,8 +118,8 @@ class Parser {
 
 	}
 
-	constructor(engine) {
-		this._engine = engine;
+	constructor() {
+		this._console = $('#feedback');
 		this.registerEvents();
 	}
 }

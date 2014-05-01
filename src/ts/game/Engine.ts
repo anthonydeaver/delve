@@ -1,7 +1,7 @@
 declare var $;
 declare var $event;
 
-class Engine {
+class Engine implements IGame{
   private _mappings: any = {
     '0001': 'haunted_mansion'
   };
@@ -32,14 +32,7 @@ class Engine {
     $event.bind('error', this.throwError);
   //  $event.bind('log', this._log);
   //  $event.bind('displayHelp', this._onShowHelp);
-  //  $('#command input').on('keypress', function(e) {
-  //    if(e.which === 13) {
-  //      var val = $(this).val();
-  //      $(this).val('');
-  //      that._parser.execute(val);
-  //    }
-  //  });
-  //  $('#command input').on('focus', function() {
+ //  $('#command input').on('focus', function() {
   //    $(this).val('');
   //  });
 
@@ -78,6 +71,10 @@ class Engine {
   // }
 
   // Public Methods
+  public onDataDump() {
+
+  }
+
   /**
    * Handler for errors that bubble up from the rest of the system
    * @param {String} msg
@@ -85,14 +82,6 @@ class Engine {
   public throwError(msg: string):void {
     throw new Error(msg);   
   }
-
-  // public getRoomManager() {
-  //  return this._roomManager;
-  // }
-
-  // public getFile(filename) {
-
-  // }
 
   /**
    * Plugs in the CSS link for the proper theme
@@ -111,8 +100,9 @@ class Engine {
   constructor(o) {
     var world = this._mappings[o.world || '0001'];
     // new Player();
-    // this._parser = new Parser(this);
-    // new Rooms(this._world);
+    // init the parser
+    new Parser();
+    new RoomManager('environs/' + world + '/rooms.json');
 
     // this.registerEvents();
     this.injectUI(world);
