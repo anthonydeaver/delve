@@ -1,12 +1,11 @@
 /// <reference path="Utils.ts" />
-/// <reference path="delve.ts" />
-/// <reference path="DelveMap.ts" />
+/// <reference path="Engine.ts" />
 declare var $;
-class Rooms {
+class RoomManager {
 
     private _rooms: any = [];
     private _deck: any;
-    private _map: DelveMap;
+    private _map: any;
     private _activeRoom: any = null;
     private _startRoom: any = null;
     private _gridCoord = {x:0, y:0, z:0};
@@ -325,7 +324,7 @@ class Rooms {
     }
 
     constructor(locale) {
-        this._map = new DelveMap();
+        // this._map = new DelveMap();
         var that = this;
         var data1;
         console.log('getting: ');

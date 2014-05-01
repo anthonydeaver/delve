@@ -7,37 +7,24 @@
 // 	ok( 1 == "1", "Passed!" );
 // });
 
-QUnit.module('Delve Events', {
-	setup: function() {
-		var result = this.result = [];
-		this.createHandler = function(id) {
-        return function() {
-          result.push([id].concat([].slice.call(arguments, 1)));
-        };
-      };
-	}
+// QUnit.module('Delve Engine', {
+// 	setup: function() {
+// 		var result = this.result = [];
+// 		this.createHandler = function(id) {
+//         return function() {
+//           result.push([id].concat([].slice.call(arguments, 1)));
+//         };
+//       };
+// 	}
+// });
+
+QUnit.test('Delve Engine', function() {
+	var delve = new Engine();
+	equal('0.0.1', delve.version);
+
+	raises(function() {
+		delve.throwError('fail to succeed');
+		}, Error, 'Must fail to succeed');
 });
 
-QUnit.test('handler order', function() {
-	window.$event = new Events(); 
-	$event.bind('order', this.createHandler('order1'));
-	$event.bind('order', this.createHandler('order2'));
-	$event.emit('order');
-	deepEqual(this.result,[
-		['order1'],
-		['order2']
-		], "event handlers are fired in the other they were created");
-});
 
-QUnit.test('arguments', function() {
-	window.$event = new Events(); 
-    $event.bind('arguments', this.createHandler('arguments1'));
-    $event.bind('arguments', this.createHandler('arguments2'));
-    $event.bind('arguments', this.createHandler('arguments3'));
-    $event.emit('arguments', 'gone');
-    deepEqual(this.result, [
-      ['arguments1', 'gone'],
-      ['arguments2', 'gone'],
-      ['arguments3', 'gone']
-    ], 'handlers should receive all passed arguments.');
-  });

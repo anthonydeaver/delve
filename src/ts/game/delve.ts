@@ -7,7 +7,7 @@
 declare var $;
 declare var $event;
 
-class Engine {
+class DelveEngine {
 	private _mappings: any = {
 		'0001': 'haunted_mansion'
 	};

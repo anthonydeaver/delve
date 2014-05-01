@@ -1,0 +1,9 @@
+{
+	"config" : {
+		"version" : "0.0.0.1",
+		"donkey" : "melbourne",
+		"mappings" : {
+	    "0001": "haunted_mansion"
+	  }
+	}
+}
