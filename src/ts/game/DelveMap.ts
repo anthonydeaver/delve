@@ -1,6 +1,11 @@
 declare var $;
 declare var $event;
 
+
+/*
+map.addRoom(rm);
+
+ */
 class DMap {
 	private _map: HTMLElement;
 	private _level: number = 1;
@@ -36,7 +41,7 @@ class DMap {
 	public addRoom(rm: any, direction: any, target) {
 		var t, xPos, yPos;
 		var txt;
-		if(target === null) {
+		if(target === null) { // This is the starting room
 			xPos = 1080;
 			yPos = 1500;
 		} else {

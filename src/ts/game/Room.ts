@@ -46,7 +46,6 @@ class Room {
     }
 	
     render() {
-        console.log('rendering: ', this.id);;
         $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function(){
@@ -57,7 +56,6 @@ class Room {
         $('#display #desc').html(this._desc);
 
         for (var x = 0; x < this._exits.length; x++ ) {
-            // $('[data-dir="' + this._exits[x] + '"]').removeClass('disabled');
             var name = this._exits[x];
             if(this._links[name]) {
                 name += " <span>(" + this._links[name].name + ")</span>";

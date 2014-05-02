@@ -467,8 +467,6 @@ var Room = (function () {
     };
 
     Room.prototype.render = function () {
-        console.log('rendering: ', this.id);
-        ;
         $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function () {
@@ -512,8 +510,8 @@ var Room = (function () {
 var RoomManager = (function () {
     function RoomManager(filename, handler) {
         var _this = this;
-        this._rooms = [];
-        this._deck = {};
+        this._deck = [];
+        this._rooms = {};
         this._activeRoom = null;
         this._startRoom = null;
         this._gridCoord = { x: 0, y: 0, z: 0 };
@@ -529,7 +527,7 @@ var RoomManager = (function () {
         $.getJSON(filename, function (data) {
             var rooms = data.rooms;
             for (var idx in rooms) {
-                that._deck[idx] = new Room(rooms[idx]);
+                that._rooms[idx] = new Room(rooms[idx]);
             }
             that.setUp();
 
@@ -556,45 +554,47 @@ var RoomManager = (function () {
 
     RoomManager.prototype.resetGame = function () {
         this._activeRoom = null;
-        this._rooms = [];
+        this._deck = [];
         this._mapGrid = null;
-        for (var i in this._deck) {
-            this._rooms.push(i);
+        for (var i in this._rooms) {
+            this._deck.push(i);
         }
+    };
+
+    RoomManager.prototype.setStartingRoom = function () {
+        for (var i in this._rooms) {
+            if (this._rooms[i].start) {
+                this._startRoom = this._rooms[i];
+                delete this._rooms[i];
+            }
+        }
+        if (this._startRoom === null) {
+            $event.emit('error', 'Failed to set start room');
+        }
+    };
+
+    RoomManager.prototype.mapToGrid = function (rm) {
+        var len = 0, offset = 0;
+        len = (this._deck.length + 1) * 2;
+        offset = Math.floor(len / 2);
+
+        this._mapGrid = this.generateGrid(len);
+        this._mapGrid[offset][offset] = rm.id;
     };
 
     RoomManager.prototype.setUp = function () {
         console.log('Rooms: setup()');
-        var len = 0, offset = 0;
-        for (var i in this._deck) {
-            if (this._deck[i].start) {
-                this._startRoom = this._deck[i];
+        this.setStartingRoom();
 
-                delete this._deck[i];
-            } else {
-                this._rooms.push(i);
-            }
-        }
-
-        if (this._startRoom === null) {
-            var t = this._rooms.pop();
-            this._startRoom = this._deck[t];
-            delete this._deck[t];
-        }
-
-        len = (this._rooms.length + 1) * 2;
-        offset = Math.floor(len / 2);
-        this._gridCoord.x = this._gridCoord.y = offset;
-        this._mapGrid = this.generateGrid(len);
-        this._mapGrid[offset][offset] = this._startRoom.id;
-
-        this._rooms = Utils.shuffle(this._rooms);
+        this._deck = Utils.shuffle(Object.keys(this._rooms));
 
         this._map.addRoom(this._startRoom, null, null);
 
-        this._startRoom.position = this._gridCoord;
         this._activeRoom = this._startRoom;
         this._activeRoom.render();
+    };
+
+    RoomManager.prototype.t = function () {
     };
 
     RoomManager.prototype.generateGrid = function (size) {
@@ -626,7 +626,7 @@ var RoomManager = (function () {
         if (this._activeRoom.links[dot]) {
             this._activeRoom.links[dot].render();
         } else {
-            if (!this._rooms.length) {
+            if (!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
@@ -678,8 +678,7 @@ var RoomManager = (function () {
                         tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
                         break;
                 }
-                console.log('test room: ', tRoom);
-                var iRoom = this._deck[tRoom];
+                var iRoom = this._rooms[tRoom];
                 if (iRoom) {
                     if (iRoom.hasExit(testPolar)) {
                         if (Math.round(Math.random())) {
@@ -705,11 +704,11 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.selectNewRoom = function (e) {
-        if (!this._rooms.length) {
+        if (!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
-        var r = this._rooms.pop();
-        var rm = this._deck[r];
+        var r = this._deck.pop();
+        var rm = this._rooms[r];
 
         if (rm.hasExit(e)) {
             return rm;
@@ -744,36 +743,6 @@ var RoomManager = (function () {
         return this._startRoom;
     };
     return RoomManager;
-})();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
 })();
 var Player = (function () {
     function Player() {
@@ -813,4 +782,34 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
+})();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
 })();

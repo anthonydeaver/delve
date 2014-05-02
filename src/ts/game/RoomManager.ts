@@ -1,8 +1,8 @@
 declare var $;
 class RoomManager {
 
-    private _rooms: any = [];
-    private _deck: any = {};
+    private _deck: any = [];
+    private _rooms: any = {};
     private _map: any;
     private _activeRoom: Room = null;
     private _startRoom: Room = null;
@@ -26,55 +26,61 @@ class RoomManager {
 
     private resetGame() {
         this._activeRoom = null;
-        this._rooms = [];
+        this._deck = [];
         this._mapGrid = null;
-        for(var i in this._deck) {
-            this._rooms.push(i);
+        for(var i in this._rooms) {
+            this._deck.push(i);
         }
+    }
+
+    private setStartingRoom() {
+        for(var i in this._rooms) {
+            if(this._rooms[i].start) {
+                this._startRoom = this._rooms[i];
+                delete this._rooms[i];
+            }
+        }
+        if(this._startRoom === null) { $event.emit('error','Failed to set start room'); }
+    }
+
+    /*
+        The grid is twice as wide as the number of rooms simply to account for the (remote)
+        possibility that all the rooms lay out in a completely horizontal pattern.
+         The chances of it happening are close to nil, but....
+    */
+    private mapToGrid(rm) {
+        var len = 0, offset = 0;
+        len = (this._deck.length + 1) * 2;
+        offset = Math.floor(len / 2);
+//        this._gridCoord.x = this._gridCoord.y = offset;
+        this._mapGrid = this.generateGrid(len);
+        this._mapGrid[offset][offset] = rm.id;
     }
 
     private setUp() {
         console.log('Rooms: setup()');
-        var len = 0, offset = 0;
-        for(var i in this._deck) {
-            if(this._deck[i].start) {
-                this._startRoom = this._deck[i];
-                // Remove the starting point from the room so 
-                // we never encounter it again.
-                delete this._deck[i];
-            } else {
-                this._rooms.push(i);
-            }
-        }
+        this.setStartingRoom();
 
-        // In case I forgot to set an starting room.
-        if(this._startRoom === null) {
-            var t = this._rooms.pop();
-            this._startRoom = this._deck[t];
-            delete this._deck[t];
+        this._deck = Utils.shuffle(Object.keys(this._rooms));
 
-        }
-        /*
-            The grid is twice as wide as the number of rooms simply to account for the (remote)
-            possibility that all the rooms lay out in a completely horizontal pattern.
-             The chances of it happening are close to nil, but....
-        */
-        // add 1 to the length to accoount for the starting room.
-        len = (this._rooms.length + 1) * 2;
-        offset = Math.floor(len / 2);
-        this._gridCoord.x = this._gridCoord.y = offset;
-        this._mapGrid = this.generateGrid(len);
-        this._mapGrid[offset][offset] = this._startRoom.id;
 
-        this._rooms = Utils.shuffle(this._rooms);
+       // add 1 to the length to accoount for the starting room.
+        // len = (this._deck.length + 1) * 2;
+        // offset = Math.floor(len / 2);
+        // this._gridCoord.x = this._gridCoord.y = offset;
+        // this._mapGrid = this.generateGrid(len);
+        // this._mapGrid[offset][offset] = this._startRoom.id;
+
         // insert into map
         this._map.addRoom(this._startRoom, null, null);
 
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-        this._startRoom.position = this._gridCoord;
+        //this._startRoom.position = this._gridCoord;
         this._activeRoom = this._startRoom;
         this._activeRoom.render();
     }
+
+    private t() {}
 
     // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
     private generateGrid(size: number) {
@@ -112,7 +118,7 @@ class RoomManager {
             // this.renderRoom(this._activeRoom.links[dot]);
             this._activeRoom.links[dot].render();
         } else {
-            if(!this._rooms.length) {
+            if(!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
@@ -178,8 +184,7 @@ class RoomManager {
                         tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x + 1];
                         break;
                 }
-                console.log('test room: ', tRoom);
-                var iRoom: Room = this._deck[tRoom];
+                var iRoom: Room = this._rooms[tRoom];
                 if(iRoom) {
                     // If test room has an exit in our direction
                     // if(this.roomHasExit(tRoom, testPolar)) {
@@ -206,15 +211,15 @@ class RoomManager {
     }
 
     /**
-     * Selects a new froom from the _deck.
+     * Selects a new froom from the _rooms.
      * @param {string} e [description]
      */
     private selectNewRoom(e: string) {
-        if(!this._rooms.length) {
+        if(!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
-        var r = this._rooms.pop();
-        var rm = this._deck[r];
+        var r = this._deck.pop();
+        var rm = this._rooms[r];
 
         if(rm.hasExit(e)) { 
             return rm; //Good as is
@@ -258,7 +263,7 @@ class RoomManager {
         $.getJSON(filename, function(data) {
             var rooms = data.rooms;
             for(var idx in rooms) {
-                that._deck[idx] = new Room(rooms[idx]);
+                that._rooms[idx] = new Room(rooms[idx]);
             }
             that.setUp();
 
