@@ -1,5 +1,5 @@
-var DelveMap = (function () {
-    function DelveMap() {
+var DMap = (function () {
+    function DMap() {
         var _this = this;
         this._level = 1;
         this._onGotoLevel = function (e) {
@@ -9,7 +9,7 @@ var DelveMap = (function () {
         this._map = $('#map article[level="1"] div');
         this.registerEvents();
     }
-    DelveMap.prototype.registerEvents = function () {
+    DMap.prototype.registerEvents = function () {
         $event.emit('log', 'registering map events');
         var toggle = function () {
             $('#map').toggle();
@@ -21,7 +21,7 @@ var DelveMap = (function () {
         $('#BTN_MAP_TOGGLE').on('click', toggle);
     };
 
-    DelveMap.prototype.onGotoLevel = function (lvl) {
+    DMap.prototype.onGotoLevel = function (lvl) {
         var g = $('#map article[level="' + lvl + '"] div');
         if (g.length == 0) {
             var map = $('#map');
@@ -34,7 +34,7 @@ var DelveMap = (function () {
         this._map = g;
     };
 
-    DelveMap.prototype.addRoom = function (rm, direction, target) {
+    DMap.prototype.addRoom = function (rm, direction, target) {
         var t, xPos, yPos;
         var txt;
         if (target === null) {
@@ -68,7 +68,7 @@ var DelveMap = (function () {
         this.addExits(yPos, xPos, rm);
     };
 
-    DelveMap.prototype.addExits = function (yPos, xPos, rm) {
+    DMap.prototype.addExits = function (yPos, xPos, rm) {
         var txt;
         for (var x = 0; x < rm.exits.length; x++) {
             var top = yPos, left = xPos;
@@ -111,17 +111,17 @@ var DelveMap = (function () {
         $(this._map).css('left', -(xPos - 200));
     };
 
-    DelveMap.prototype.changeLevels = function (o, n) {
+    DMap.prototype.changeLevels = function (o, n) {
         $('#map article[level="' + o + '"]').fadeTo("slow", 0.1);
         $('#map article[level="' + n + '"]').fadeIn("slow");
     };
 
-    DelveMap.prototype.shorten = function (name) {
+    DMap.prototype.shorten = function (name) {
         var arr = name.split(' ');
         var ret = arr[0][0] + '.' + arr[1];
         return ret;
     };
-    return DelveMap;
+    return DMap;
 })();
 var Engine = (function () {
     function Engine(o) {
@@ -524,13 +524,13 @@ var RoomManager = (function () {
         this._onDataDump = function (e) {
             _this.onDataDump();
         };
+        this._map = new DMap();
         var that = this;
         $.getJSON(filename, function (data) {
             var rooms = data.rooms;
             for (var idx in rooms) {
                 that._deck[idx] = new Room(rooms[idx]);
             }
-            console.log('test: ', data);
             that.setUp();
 
             that.registerEvents();
@@ -590,8 +590,9 @@ var RoomManager = (function () {
 
         this._rooms = Utils.shuffle(this._rooms);
 
-        this._startRoom.position = this._gridCoord;
+        this._map.addRoom(this._startRoom, null, null);
 
+        this._startRoom.position = this._gridCoord;
         this._activeRoom = this._startRoom;
         this._activeRoom.render();
     };
@@ -629,6 +630,7 @@ var RoomManager = (function () {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
+            console.log('new room: ', rm);
             if (!rm) {
                 $event.emit('error', 'Failed to load new room!');
             }
@@ -695,18 +697,11 @@ var RoomManager = (function () {
                 }
             }
 
+            this._map.addRoom(rm, dot, this._activeRoom.id);
+
+            this._activeRoom = rm;
             this._activeRoom.render();
         }
-    };
-
-    RoomManager.prototype.checkExits = function (rm, e) {
-        var entrance = this.getPolar(e);
-        for (var x = 0; x < rm.exits.length; x++) {
-            if (rm.exits[x] === entrance) {
-                return true;
-            }
-        }
-        return false;
     };
 
     RoomManager.prototype.selectNewRoom = function (e) {
@@ -716,7 +711,7 @@ var RoomManager = (function () {
         var r = this._rooms.pop();
         var rm = this._deck[r];
 
-        if (this.checkExits(rm, e)) {
+        if (rm.hasExit(e)) {
             return rm;
         }
         var that = this;
@@ -725,7 +720,6 @@ var RoomManager = (function () {
         function memoizer(rm) {
             var recur = function (d) {
                 rm.rotateExits();
-
                 if (!rm.hasExit(that.getPolar(d))) {
                     rm = recur(d);
                 }
@@ -750,6 +744,36 @@ var RoomManager = (function () {
         return this._startRoom;
     };
     return RoomManager;
+})();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
 })();
 var Player = (function () {
     function Player() {
@@ -789,34 +813,4 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
-})();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
 })();

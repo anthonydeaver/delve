@@ -31,9 +31,6 @@ class RoomManager {
         for(var i in this._deck) {
             this._rooms.push(i);
         }
-        // this._rooms = Utils.shuffle(this._rooms);
-        // this._mapGrid = this.generateGrid(len);
-        // this._mapGrid[offset][offset] = this._startRoom.id;
     }
 
     private setUp() {
@@ -71,15 +68,12 @@ class RoomManager {
 
         this._rooms = Utils.shuffle(this._rooms);
         // insert into map
-        // this._map.setStartPoint(this._startRoom);
-        // this._map.addRoom(this._startRoom, null, null);
+        this._map.addRoom(this._startRoom, null, null);
 
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
         this._startRoom.position = this._gridCoord;
-        // this._startRoom.render();
         this._activeRoom = this._startRoom;
         this._activeRoom.render();
-        // this.renderRoom(this._startRoom);
     }
 
     // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
@@ -122,6 +116,7 @@ class RoomManager {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
+            console.log('new room: ', rm);
             if(!rm) { $event.emit('error','Failed to load new room!'); }
 
             // Set up the links from the exiting room to the entering room and visa-versa
@@ -203,30 +198,13 @@ class RoomManager {
             }            
                 
             /* draw on the map */
-            //this._map.addRoom(rm, dot, this._activeRoom.id);
+            this._map.addRoom(rm, dot, this._activeRoom.id);
             // this.renderRoom(rm);
+            this._activeRoom = rm;
             this._activeRoom.render();
         }
     }
 
-
-    private checkExits(rm, e) {
-        var entrance = this.getPolar(e);
-        for (var x = 0; x < rm.exits.length; x++ ) {
-            if(rm.exits[x] === entrance) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /*
-    'draw' as in draw from a deck...
-     
-    - get room from top of 'deck'
-    - if no matching entrance / exit, rotate 
-    - no match: Error. !! Should never happen !!
-     */
     /**
      * Selects a new froom from the _deck.
      * @param {string} e [description]
@@ -238,7 +216,7 @@ class RoomManager {
         var r = this._rooms.pop();
         var rm = this._deck[r];
 
-        if(this.checkExits(rm, e)) { 
+        if(rm.hasExit(e)) { 
             return rm; //Good as is
         }
         var that = this;
@@ -247,9 +225,6 @@ class RoomManager {
         function memoizer(rm) {
             var recur = function(d) {
                 rm.rotateExits();
-                //rm = that.rotateRoomExits(rm);
-                // var result = that.checkExits(rm, d);
-                // if(!that.checkExits(rm, d)) {
                 if(!rm.hasExit(that.getPolar(d))) {
                     rm = recur(d);
                 }
@@ -278,13 +253,13 @@ class RoomManager {
 
     constructor(filename, handler?: any) {
         // The handler callback is strictly for unit testing
+        this._map = new DMap();
         var that = this;
         $.getJSON(filename, function(data) {
             var rooms = data.rooms;
             for(var idx in rooms) {
                 that._deck[idx] = new Room(rooms[idx]);
             }
-            console.log('test: ', data);
             that.setUp();
 
             that.registerEvents();

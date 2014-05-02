@@ -1,7 +1,7 @@
 declare var $;
 declare var $event;
 
-class DelveMap {
+class DMap {
 	private _map: HTMLElement;
 	private _level: number = 1;
 
