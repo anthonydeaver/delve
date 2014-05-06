@@ -52,7 +52,6 @@ class RoomManager {
         var len = 0, offset = 0;
         len = (this._deck.length + 1) * 2;
         offset = Math.floor(len / 2);
-//        this._gridCoord.x = this._gridCoord.y = offset;
         this._mapGrid = this.generateGrid(len);
         this._mapGrid[offset][offset] = rm.id;
     }
@@ -62,20 +61,10 @@ class RoomManager {
         this.setStartingRoom();
 
         this._deck = Utils.shuffle(Object.keys(this._rooms));
-
-
-       // add 1 to the length to accoount for the starting room.
-        // len = (this._deck.length + 1) * 2;
-        // offset = Math.floor(len / 2);
-        // this._gridCoord.x = this._gridCoord.y = offset;
-        // this._mapGrid = this.generateGrid(len);
-        // this._mapGrid[offset][offset] = this._startRoom.id;
-
         // insert into map
         this._map.addRoom(this._startRoom, null, null);
 
         // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-        //this._startRoom.position = this._gridCoord;
         this._activeRoom = this._startRoom;
         this._activeRoom.render();
     }
@@ -156,7 +145,7 @@ class RoomManager {
             */
 
             /*
-                - look at room in all 4 adjenctnt locations
+                - look at room in all 4 adjacent locations
                 - if adjacent room doesn't have a link, remove this rooms cooresponding exit. Or,
                 - if adjacent room doesn't have a link, shift this rooms cooresponding exit to another available direction.
 
@@ -187,7 +176,6 @@ class RoomManager {
                 var iRoom: Room = this._rooms[tRoom];
                 if(iRoom) {
                     // If test room has an exit in our direction
-                    // if(this.roomHasExit(tRoom, testPolar)) {
                     if(iRoom.hasExit(testPolar)) {
                         // Adjacent room has an exit in our direction, what to do...
                         if(Math.round(Math.random())) { console.log('add an exit')}
@@ -204,7 +192,6 @@ class RoomManager {
                 
             /* draw on the map */
             this._map.addRoom(rm, dot, this._activeRoom.id);
-            // this.renderRoom(rm);
             this._activeRoom = rm;
             this._activeRoom.render();
         }
@@ -218,7 +205,7 @@ class RoomManager {
         if(!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
-        var r = this._deck.pop();
+        var r = this._deck.shift();
         var rm = this._rooms[r];
 
         if(rm.hasExit(e)) { 
