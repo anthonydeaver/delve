@@ -4,7 +4,7 @@ class RoomManager {
   private _deck: any = [];
   private _rooms: any = {};
   private _map: any;
-  private _activeRoom: Room = null;
+  private _currentRoom: Room = null;
   private _startRoom: Room = null;
   private _gridCoord = {x:0, y:0, z:0};
   private _mapGrid: any = [];
@@ -21,14 +21,14 @@ class RoomManager {
           console.log('arr['+i+']: ', this._mapGrid[i].toString());
       }
       console.log('current grid coords: ', this._gridCoord);
-
+      console.log('active room: ', this._currentRoom.id);
       console.log('>>> Deck:', this._deck.toString());
       console.log('>>> Rooms:', this._rooms);
       console.log('+++++++++++++++++++++++++++++++++');
   }
 
   private resetGame() {
-      this._activeRoom = null;
+      this._currentRoom = null;
       this._deck = [];
       this._mapGrid = null;
       for(var i in this._rooms) {
@@ -40,7 +40,6 @@ class RoomManager {
       for(var i in this._rooms) {
           if(this._rooms[i].start) {
               this._startRoom = this._rooms[i];
-              //delete this._rooms[i];
           }
       }
       if(this._startRoom === null) { $event.emit('error','Failed to set start room'); }
@@ -52,24 +51,17 @@ class RoomManager {
        The chances of it happening are close to nil, but....
   */
   private initGrid(rm) {
-      console.log('mapping');
       var len = 0, offset = 0;
       len = (this._deck.length + 1);
       this._gridCoord.x = this._gridCoord.y = len;
       this._mapGrid = this.generateGrid(len * 2);
-      //offset = Math.floor(len / 2);
-      // if(this._mapGrid.length < 1) {
-      //     this._mapGrid = this.generateGrid(len);
-      // }
       this._mapGrid[len][len] = rm.id;
   }
 
   private setUp() {
-      console.log('Rooms: setup()');
       this.setStartingRoom();
-      console.log('grid:', this._mapGrid.toString());
       this._deck = Utils.shuffle(Object.keys(this._rooms));
-      // Remove the starting room from the 'deck'
+      // Remove the starting room from the '_deck' but not the _rooms
       var idx = this._deck.indexOf(this._startRoom.id);
       this._deck.splice(idx, 1);
       this.initGrid(this._startRoom);
@@ -77,15 +69,14 @@ class RoomManager {
       this._map.addRoom(this._startRoom, null, null);
 
       // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-      this._activeRoom = this._startRoom;
-      this._activeRoom.render();
+      this._currentRoom = this._startRoom;
+      this._currentRoom.render();
   }
 
   private t() {}
 
   // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
   private generateGrid(size: number) {
-      console.log('start');
       var arr = new Array(size);
       for(var x = 0; x < size; x++) {
           arr[x] = new Array(size);
@@ -97,9 +88,9 @@ class RoomManager {
   private getPolar(dir):string {
       var polar = {
           'north':'south',
-          'south': 'north',
-          'east':'west',
-          'west':'east'
+          'south':'north',
+          'east' :'west',
+          'west' :'east'
       };
       return polar[dir];
   }
@@ -109,20 +100,23 @@ class RoomManager {
    * @param {string} dot Direction selected by the user (i.e. 'north')
    */
   private onDirectionSelected(dot: string) {
-      // if(dot === 'up') {}
-      // if(dot === 'down') {}
 
       // Make sure the active room has that exit available
-      if(this._activeRoom.exits.indexOf(dot) === -1) {
+      console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
+      if(this._currentRoom.exits.indexOf(dot) === -1) {
           $event.emit('nojoy', "You can't go that way.");
           return;
       }
       var rm;
       //First, check the current room for active connections for the selected direction
-      if(this._activeRoom.links[dot]) {
+      if(this._currentRoom.links[dot]) {
           // already have a connection
-          // this.renderRoom(this._activeRoom.links[dot]);
-          this._activeRoom.links[dot].render();
+          // this.renderRoom(this._currentRoom.links[dot]);
+          rm = this._currentRoom.links[dot];
+          console.log('new active: ', rm.id);
+          this._currentRoom = rm;
+          this._currentRoom.render();
+          return;
       } else {
           if(!this._deck.length) {
               $event.emit('nojoy', 'That exit is sealed by some unknown force.');
@@ -131,9 +125,9 @@ class RoomManager {
           if(!rm) { $event.emit('error','Failed to load new room!'); }
 
           // Set up the links from the exiting room to the entering room and visa-versa
-          this._activeRoom.links[dot] = rm;
+          this._currentRoom.links[dot] = rm;
           // console.log('links: ', rm);
-          rm.links[this.getPolar(dot)] = this._activeRoom;
+          rm.links[this.getPolar(dot)] = this._currentRoom;
 
           // set map coordinates
           switch(dot) {
@@ -157,9 +151,9 @@ class RoomManager {
           this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
           if(this.checkForConnections(rm, dot)) {
             /* draw on the map */
-            this._map.addRoom(rm, dot, this._activeRoom.id);
-            this._activeRoom = rm;
-            this._activeRoom.render();
+            this._map.addRoom(rm, dot, this._currentRoom.id);
+            this._currentRoom = rm;
+            this._currentRoom.render();
           } else {
             console.log('failed to check connections')
           }
@@ -233,11 +227,13 @@ class RoomManager {
                 // if(Math.round(Math.random())) { console.log('add an exit')}
                 // else { console.log('attempt to shift'); }
             } else {
+              console.log('neighbor room does not have a connection');
                 // Adjacent room do not have an exit in our direction, attempt to shift an existing, unattached, exit
                 for(var x = 0; x < iRoom.exits.length; x++) {
                   var ex = iRoom.exits[x];
                   if(!iRoom.links[ex]) {
                     // available exit, shift it.
+                    console.log('available exit, shift it');
                     iRoom.exits.splice(x, 1);
                     iRoom.exits.push(testPolar);
                     rm.links[testDirection] = iRoom;
@@ -262,13 +258,14 @@ class RoomManager {
    * @param {string} e [description]
    */
   private selectNewRoom(e: string) {
+    console.log('exit: ', e);
       if(!this._deck.length) {
           $event.emit('error', 'no more rooms');
       }
       var r = this._deck.shift();
       var rm = this._rooms[r];
 
-      if(rm.hasExit(e)) { 
+      if(rm.hasExit(this.getPolar(e))) { 
           return rm; //Good as is
       }
 

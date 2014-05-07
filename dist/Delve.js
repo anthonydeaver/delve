@@ -530,7 +530,7 @@ var RoomManager = (function () {
         var _this = this;
         this._deck = [];
         this._rooms = {};
-        this._activeRoom = null;
+        this._currentRoom = null;
         this._startRoom = null;
         this._gridCoord = { x: 0, y: 0, z: 0 };
         this._mapGrid = [];
@@ -570,14 +570,14 @@ var RoomManager = (function () {
             console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
         console.log('current grid coords: ', this._gridCoord);
-
+        console.log('active room: ', this._currentRoom.id);
         console.log('>>> Deck:', this._deck.toString());
         console.log('>>> Rooms:', this._rooms);
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
     RoomManager.prototype.resetGame = function () {
-        this._activeRoom = null;
+        this._currentRoom = null;
         this._deck = [];
         this._mapGrid = null;
         for (var i in this._rooms) {
@@ -597,19 +597,15 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.initGrid = function (rm) {
-        console.log('mapping');
         var len = 0, offset = 0;
         len = (this._deck.length + 1);
         this._gridCoord.x = this._gridCoord.y = len;
         this._mapGrid = this.generateGrid(len * 2);
-
         this._mapGrid[len][len] = rm.id;
     };
 
     RoomManager.prototype.setUp = function () {
-        console.log('Rooms: setup()');
         this.setStartingRoom();
-        console.log('grid:', this._mapGrid.toString());
         this._deck = Utils.shuffle(Object.keys(this._rooms));
 
         var idx = this._deck.indexOf(this._startRoom.id);
@@ -618,15 +614,14 @@ var RoomManager = (function () {
 
         this._map.addRoom(this._startRoom, null, null);
 
-        this._activeRoom = this._startRoom;
-        this._activeRoom.render();
+        this._currentRoom = this._startRoom;
+        this._currentRoom.render();
     };
 
     RoomManager.prototype.t = function () {
     };
 
     RoomManager.prototype.generateGrid = function (size) {
-        console.log('start');
         var arr = new Array(size);
         for (var x = 0; x < size; x++) {
             arr[x] = new Array(size);
@@ -646,14 +641,19 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.onDirectionSelected = function (dot) {
-        if (this._activeRoom.exits.indexOf(dot) === -1) {
+        console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
+        if (this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
             return;
         }
         var rm;
 
-        if (this._activeRoom.links[dot]) {
-            this._activeRoom.links[dot].render();
+        if (this._currentRoom.links[dot]) {
+            rm = this._currentRoom.links[dot];
+            console.log('new active: ', rm.id);
+            this._currentRoom = rm;
+            this._currentRoom.render();
+            return;
         } else {
             if (!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
@@ -663,9 +663,9 @@ var RoomManager = (function () {
                 $event.emit('error', 'Failed to load new room!');
             }
 
-            this._activeRoom.links[dot] = rm;
+            this._currentRoom.links[dot] = rm;
 
-            rm.links[this.getPolar(dot)] = this._activeRoom;
+            rm.links[this.getPolar(dot)] = this._currentRoom;
 
             switch (dot) {
                 case 'north':
@@ -687,9 +687,9 @@ var RoomManager = (function () {
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
             if (this.checkForConnections(rm, dot)) {
-                this._map.addRoom(rm, dot, this._activeRoom.id);
-                this._activeRoom = rm;
-                this._activeRoom.render();
+                this._map.addRoom(rm, dot, this._currentRoom.id);
+                this._currentRoom = rm;
+                this._currentRoom.render();
             } else {
                 console.log('failed to check connections');
             }
@@ -741,9 +741,12 @@ var RoomManager = (function () {
                         return true;
                     }
                 } else {
+                    console.log('neighbor room does not have a connection');
+
                     for (var x = 0; x < iRoom.exits.length; x++) {
                         var ex = iRoom.exits[x];
                         if (!iRoom.links[ex]) {
+                            console.log('available exit, shift it');
                             iRoom.exits.splice(x, 1);
                             iRoom.exits.push(testPolar);
                             rm.links[testDirection] = iRoom;
@@ -762,13 +765,14 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.selectNewRoom = function (e) {
+        console.log('exit: ', e);
         if (!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
         var r = this._deck.shift();
         var rm = this._rooms[r];
 
-        if (rm.hasExit(e)) {
+        if (rm.hasExit(this.getPolar(e))) {
             return rm;
         }
 
