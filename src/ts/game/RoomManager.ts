@@ -48,19 +48,25 @@ class RoomManager {
         possibility that all the rooms lay out in a completely horizontal pattern.
          The chances of it happening are close to nil, but....
     */
-    private mapToGrid(rm) {
+    private initGrid(rm) {
+        console.log('mapping');
         var len = 0, offset = 0;
-        len = (this._deck.length + 1) * 2;
-        offset = Math.floor(len / 2);
-        this._mapGrid = this.generateGrid(len);
-        this._mapGrid[offset][offset] = rm.id;
+        len = (this._deck.length + 1);
+        this._gridCoord.x = this._gridCoord.y = len;
+        this._mapGrid = this.generateGrid(len * 2);
+        //offset = Math.floor(len / 2);
+        // if(this._mapGrid.length < 1) {
+        //     this._mapGrid = this.generateGrid(len);
+        // }
+        this._mapGrid[len][len] = rm.id;
     }
 
     private setUp() {
         console.log('Rooms: setup()');
         this.setStartingRoom();
-
+        console.log('grid:', this._mapGrid.toString());
         this._deck = Utils.shuffle(Object.keys(this._rooms));
+        this.initGrid(this._startRoom);
         // insert into map
         this._map.addRoom(this._startRoom, null, null);
 
@@ -73,11 +79,12 @@ class RoomManager {
 
     // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
     private generateGrid(size: number) {
+        console.log('start');
         var arr = new Array(size);
         for(var x = 0; x < size; x++) {
             arr[x] = new Array(size);
         }
-
+        console.log('done');
         return arr;
     }
 
@@ -134,6 +141,9 @@ class RoomManager {
                     this._gridCoord.x--;
                     break;
             }
+
+            console.log('this._gridCoord.x: ', this._gridCoord.x);
+            console.log('this._gridCoord.y: ', this._gridCoord.y);
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
 
@@ -211,6 +221,10 @@ class RoomManager {
         if(rm.hasExit(e)) { 
             return rm; //Good as is
         }
+
+        // This executes in the event that the new room doesn't have an 
+        // entrance that matches to the current rooms exit.
+        // For example the user is going north, but the new room doesn't have a south exit.
         var that = this;
         var cnt = 0;
 
@@ -249,9 +263,12 @@ class RoomManager {
         var that = this;
         $.getJSON(filename, function(data) {
             var rooms = data.rooms;
+            var cnt = 0;
             for(var idx in rooms) {
                 that._rooms[idx] = new Room(rooms[idx]);
+                cnt++;
             }
+            //that._mapGrid = that.generateGrid(cnt * 2);
             that.setUp();
 
             that.registerEvents();

@@ -526,9 +526,12 @@ var RoomManager = (function () {
         var that = this;
         $.getJSON(filename, function (data) {
             var rooms = data.rooms;
+            var cnt = 0;
             for (var idx in rooms) {
                 that._rooms[idx] = new Room(rooms[idx]);
+                cnt++;
             }
+
             that.setUp();
 
             that.registerEvents();
@@ -573,20 +576,22 @@ var RoomManager = (function () {
         }
     };
 
-    RoomManager.prototype.mapToGrid = function (rm) {
+    RoomManager.prototype.initGrid = function (rm) {
+        console.log('mapping');
         var len = 0, offset = 0;
-        len = (this._deck.length + 1) * 2;
-        offset = Math.floor(len / 2);
+        len = (this._deck.length + 1);
+        this._gridCoord.x = this._gridCoord.y = len;
+        this._mapGrid = this.generateGrid(len * 2);
 
-        this._mapGrid = this.generateGrid(len);
-        this._mapGrid[offset][offset] = rm.id;
+        this._mapGrid[len][len] = rm.id;
     };
 
     RoomManager.prototype.setUp = function () {
         console.log('Rooms: setup()');
         this.setStartingRoom();
-
+        console.log('grid:', this._mapGrid.toString());
         this._deck = Utils.shuffle(Object.keys(this._rooms));
+        this.initGrid(this._startRoom);
 
         this._map.addRoom(this._startRoom, null, null);
 
@@ -598,11 +603,12 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.generateGrid = function (size) {
+        console.log('start');
         var arr = new Array(size);
         for (var x = 0; x < size; x++) {
             arr[x] = new Array(size);
         }
-
+        console.log('done');
         return arr;
     };
 
@@ -654,6 +660,9 @@ var RoomManager = (function () {
                     break;
             }
 
+            console.log('this._gridCoord.x: ', this._gridCoord.x);
+            console.log('this._gridCoord.y: ', this._gridCoord.y);
+
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
 
             var dirs = ['north', 'south', 'east', 'west'];
@@ -697,7 +706,6 @@ var RoomManager = (function () {
             }
 
             this._map.addRoom(rm, dot, this._activeRoom.id);
-
             this._activeRoom = rm;
             this._activeRoom.render();
         }
@@ -707,12 +715,13 @@ var RoomManager = (function () {
         if (!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
-        var r = this._deck.pop();
+        var r = this._deck.shift();
         var rm = this._rooms[r];
 
         if (rm.hasExit(e)) {
             return rm;
         }
+
         var that = this;
         var cnt = 0;
 
