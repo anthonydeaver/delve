@@ -299,7 +299,11 @@ var Parser = (function () {
         this._onDataDump = function () {
             _this.onDataDump();
         };
+        this._execute = function (e) {
+            _this.execute(e);
+        };
         this._console = $('#feedback');
+        console.log('console: ', this._console);
         this.registerEvents();
     }
     Parser.prototype.declareCantDo = function (cmd, args) {
@@ -313,8 +317,9 @@ var Parser = (function () {
     };
 
     Parser.prototype.updateConsole = function (msg) {
-        this._console.append('<br /><span>' + msg + '</span>');
-        this._console[0].scrollTop = this._console.scrollHeight;
+        var console = $('#feedback');
+        console.append('<br /><span>' + msg + '</span>');
+        console[0].scrollTop = console.scrollHeight;
     };
 
     Parser.prototype.handleShowCommand = function (args) {
@@ -354,7 +359,7 @@ var Parser = (function () {
             if (e.which === 13) {
                 var val = $(this).val();
                 $(this).val('');
-                that.execute(val);
+                that._execute(val);
             }
         });
     };
