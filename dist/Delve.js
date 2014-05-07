@@ -125,10 +125,14 @@ var DMap = (function () {
 })();
 var Engine = (function () {
     function Engine(o) {
+        var _this = this;
         this._mappings = {
             '0001': 'haunted_mansion'
         };
         this._version = '0.0.0.1';
+        this._onShowHelp = function (e) {
+            return _this.onShowHelp(e);
+        };
         var world = this._mappings[o.world || '0001'];
 
         new Parser();
@@ -146,6 +150,15 @@ var Engine = (function () {
 
     Engine.prototype.registerEvents = function () {
         $event.bind('error', this.throwError);
+
+        $event.bind('displayHelp', this._onShowHelp);
+    };
+
+    Engine.prototype.onShowHelp = function (e) {
+        console.log('showing help');
+        new Modal({
+            title: 'Delve Help', msg: "" + "It's simple really, you just enter commands into the command bar (the black bar at the bottom of the screen) and things happen." + "Currently there are # supported commands:<br />" + "<ul>" + "<li><i>GO</i> {direction} - where direction is any of the exits listed for the current room (north, south, etc...)</li>" + "<li><i>HELP</i> (obviously)</li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "</ul>"
+        });
     };
 
     Engine.prototype.onDataDump = function () {
@@ -557,6 +570,9 @@ var RoomManager = (function () {
             console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
         console.log('current grid coords: ', this._gridCoord);
+
+        console.log('>>> Deck:', this._deck.toString());
+        console.log('>>> Rooms:', this._rooms);
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
@@ -573,7 +589,6 @@ var RoomManager = (function () {
         for (var i in this._rooms) {
             if (this._rooms[i].start) {
                 this._startRoom = this._rooms[i];
-                delete this._rooms[i];
             }
         }
         if (this._startRoom === null) {
@@ -596,6 +611,9 @@ var RoomManager = (function () {
         this.setStartingRoom();
         console.log('grid:', this._mapGrid.toString());
         this._deck = Utils.shuffle(Object.keys(this._rooms));
+
+        var idx = this._deck.indexOf(this._startRoom.id);
+        this._deck.splice(idx, 1);
         this.initGrid(this._startRoom);
 
         this._map.addRoom(this._startRoom, null, null);
@@ -641,7 +659,6 @@ var RoomManager = (function () {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
-            console.log('new room: ', rm);
             if (!rm) {
                 $event.emit('error', 'Failed to load new room!');
             }
@@ -669,51 +686,79 @@ var RoomManager = (function () {
             console.log('this._gridCoord.y: ', this._gridCoord.y);
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
+            if (this.checkForConnections(rm, dot)) {
+                this._map.addRoom(rm, dot, this._activeRoom.id);
+                this._activeRoom = rm;
+                this._activeRoom.render();
+            } else {
+                console.log('failed to check connections');
+            }
+        }
+    };
 
-            var dirs = ['north', 'south', 'east', 'west'];
-            for (var i = 0; i < dirs.length; i++) {
-                var testDirection = dirs[i];
-                var testPolar = this.getPolar(testDirection);
-                var tRoom = 'xxx';
-                if (testDirection == this.getPolar(dot)) {
-                    continue;
-                }
-                switch (testDirection) {
-                    case 'north':
-                        tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
-                        break;
-                    case 'south':
-                        tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
-                        break;
-                    case 'east':
-                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
-                        break;
-                    case 'west':
-                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
-                        break;
-                }
-                var iRoom = this._rooms[tRoom];
-                if (iRoom) {
-                    if (iRoom.hasExit(testPolar)) {
-                        if (Math.round(Math.random())) {
-                            console.log('add an exit');
-                        } else {
-                            console.log('attempt to shift');
-                        }
+    RoomManager.prototype.checkForConnections = function (rm, dot) {
+        var dirs = ['north', 'south', 'east', 'west'];
+        for (var i = 0; i < dirs.length; i++) {
+            var testDirection = dirs[i];
+            var testPolar = this.getPolar(testDirection);
+            var tRoom = 'xxx';
+            if (testDirection == this.getPolar(dot)) {
+                continue;
+            }
+            switch (testDirection) {
+                case 'north':
+                    tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                    break;
+                case 'south':
+                    tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                    break;
+                case 'east':
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                    break;
+                case 'west':
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                    break;
+            }
+            var iRoom = this._rooms[tRoom];
+            console.log('iRoom: ', tRoom);
+            if (iRoom) {
+                console.log('testing if ' + tRoom + ' has an exit to the ' + testDirection);
+                if (iRoom.hasExit(testDirection)) {
+                    console.log('has cooresponding exit');
+
+                    if (rm.hasExit(testPolar)) {
+                        console.log('excellent!');
+
+                        rm.links[testPolar] = iRoom;
+                        iRoom.links[testDirection] = rm;
+                        return true;
                     } else {
-                        if (Math.round(Math.random())) {
-                            console.log('remove our exit');
-                        } else {
-                            console.log('attempt to shift');
-                        }
+                        console.log('we have no exit');
+
+                        rm.exits.push(testPolar);
+                        rm.links[testPolar] = iRoom;
+                        iRoom.links[testDirection] = rm;
+                        return true;
                     }
+                } else {
+                    for (var x = 0; x < iRoom.exits.length; x++) {
+                        var ex = iRoom.exits[x];
+                        if (!iRoom.links[ex]) {
+                            iRoom.exits.splice(x, 1);
+                            iRoom.exits.push(testPolar);
+                            rm.links[testDirection] = iRoom;
+                            iRoom.links[testPolar] = rm;
+                        }
+                        return true;
+                    }
+
+                    var idx = rm.exits.indexOf(testDirection);
+                    rm.exits.splice(idx, 1);
+                    return true;
                 }
             }
-
-            this._map.addRoom(rm, dot, this._activeRoom.id);
-            this._activeRoom = rm;
-            this._activeRoom.render();
         }
+        return true;
     };
 
     RoomManager.prototype.selectNewRoom = function (e) {
