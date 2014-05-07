@@ -44,7 +44,7 @@ class Parser implements IGame {
 	private updateConsole(msg) {
 		var console = $('#feedback')
 		console.append('<br /><span>' + msg + '</span>');
-		console[0].scrollTop = console.scrollHeight;
+		console[0].scrollTop = console[0].scrollHeight;
 	}
 
 	private handleShowCommand(args: any) {

@@ -360,7 +360,7 @@ var Parser = (function () {
     Parser.prototype.updateConsole = function (msg) {
         var console = $('#feedback');
         console.append('<br /><span>' + msg + '</span>');
-        console[0].scrollTop = console.scrollHeight;
+        console[0].scrollTop = console[0].scrollHeight;
     };
 
     Parser.prototype.handleShowCommand = function (args) {
