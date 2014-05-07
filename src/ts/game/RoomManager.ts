@@ -108,27 +108,6 @@ class RoomManager {
           return;
       }
       var rm;
-      //First, check the current room for active connections for the selected direction
-      if(this._currentRoom.links[dot]) {
-          // already have a connection
-          // this.renderRoom(this._currentRoom.links[dot]);
-          rm = this._currentRoom.links[dot];
-          console.log('new active: ', rm.id);
-          this._currentRoom = rm;
-          this._currentRoom.render();
-          return;
-      } else {
-          if(!this._deck.length) {
-              $event.emit('nojoy', 'That exit is sealed by some unknown force.');
-          }
-          rm = this.selectNewRoom(dot);
-          if(!rm) { $event.emit('error','Failed to load new room!'); }
-
-          // Set up the links from the exiting room to the entering room and visa-versa
-          this._currentRoom.links[dot] = rm;
-          // console.log('links: ', rm);
-          rm.links[this.getPolar(dot)] = this._currentRoom;
-
           // set map coordinates
           switch(dot) {
               case 'north' :
@@ -144,12 +123,28 @@ class RoomManager {
                   this._gridCoord.x--;
                   break;
           }
+      //First, check the current room for active connections for the selected direction
+      if(this._currentRoom.links[dot]) {
+          // already have a connection
+          rm = this._currentRoom.links[dot];
+          this._map.shiftView(dot, this._currentRoom.id);
+          this._currentRoom = rm;
+          this._currentRoom.render();
 
-          console.log('this._gridCoord.x: ', this._gridCoord.x);
-          console.log('this._gridCoord.y: ', this._gridCoord.y);
+          return;
+      } else {
+          if(!this._deck.length) {
+              $event.emit('nojoy', 'That exit is sealed by some unknown force.');
+          }
+          rm = this.selectNewRoom(dot);
+          if(!rm) { $event.emit('error','Failed to load new room!'); }
+
+          // Set up the links from the exiting room to the entering room and visa-versa
+          this._currentRoom.links[dot] = rm;
+          rm.links[this.getPolar(dot)] = this._currentRoom;
 
           this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
-          if(this.checkForConnections(rm, dot)) {
+          if(this.scanGrid(rm, dot)) {
             /* draw on the map */
             this._map.addRoom(rm, dot, this._currentRoom.id);
             this._currentRoom = rm;
@@ -161,13 +156,14 @@ class RoomManager {
   }
 
   /**
-   * Go through  exits and look for existing rooms on the grid in that
+   * Go through possible exits and look for existing rooms on the grid in that
    * direction and make the necessary links.
    * If the adjoining room doesn't have an exit to match, remove the new rooms 
    * corresponding exit. Might cause some rooms to only have a single entrance/exit
    * @param {object} rm Room to scan
    */
-  private checkForConnections(rm: any, dot: string) {
+  private scanGrid(rm: any, dot: string) {
+    // console.log('scanning around ', rm.id);
     /*
         - look at room in all 4 adjacent locations
         - if adjacent room doesn't have a link, remove this rooms cooresponding exit. Or,
@@ -179,11 +175,12 @@ class RoomManager {
     */
     var dirs = ['north', 'south','east','west'];
     for( var i = 0; i < dirs.length; i++) {
-        var testDirection = dirs[i];
-        var testPolar =this.getPolar(testDirection);
+        var testDir = dirs[i];
+        var testPolar =this.getPolar(testDir);
         var tRoom = 'xxx';
-        if(testDirection == this.getPolar(dot)) { continue; } // skip the incoming exit, we know about that one.
-        switch(testDirection) {
+        // console.log('testing: ', testDir);
+        if(testDir == dot) { continue; } // skip the incoming exit, we know about that one.
+        switch(testDir) {
             case 'north':
                 tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
                 break;
@@ -191,64 +188,35 @@ class RoomManager {
                 tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
                 break;
             case 'east':
-                tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
+                tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x + 1];
                 break;
             case 'west':
-                tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x + 1];
+                tRoom = this._mapGrid[this._gridCoord.y ][this._gridCoord.x - 1];
+                break;
+            default:
                 break;
         }
         var iRoom: Room = this._rooms[tRoom];
         console.log('iRoom: ', tRoom);
-        if(iRoom) {
-            // If test room has an exit in our direction
-            console.log('testing if ' + tRoom + ' has an exit to the '+ testDirection);
-            if(iRoom.hasExit(testDirection)) {
-              console.log('has cooresponding exit');
-                // Adjacent room has an exit in our direction, does this room have an exit in that direction?
-                if(rm.hasExit(testPolar)) {
-                  console.log('excellent!')
-                  // Yes, so just make the connection
-                  rm.links[testPolar] = iRoom;
-                  iRoom.links[testDirection] = rm;
-                  return true;
-                } else {
-                  console.log('we have no exit');
-                  // This room doesn't have an existing exit in that direction, add one.
-                  // We do this because if there is a room already on the grid attempting to remove the UI for an exit 
-                  // means a visual change that looks like a glitch. Would rather modify the existing ro.m.
-                  // NOT YET IMPLEMENTED.
-                  // The exception is if this room is 'hardened', in that case the other room need to know that their exit is boarded up
-                  // NOT YET IMPLEMENTED.
-                  rm.exits.push(testPolar);
-                  rm.links[testPolar] = iRoom;
-                  iRoom.links[testDirection] = rm;
-                  return true;
-                }
-                // if(Math.round(Math.random())) { console.log('add an exit')}
-                // else { console.log('attempt to shift'); }
-            } else {
-              console.log('neighbor room does not have a connection');
-                // Adjacent room do not have an exit in our direction, attempt to shift an existing, unattached, exit
-                for(var x = 0; x < iRoom.exits.length; x++) {
-                  var ex = iRoom.exits[x];
-                  if(!iRoom.links[ex]) {
-                    // available exit, shift it.
-                    console.log('available exit, shift it');
-                    iRoom.exits.splice(x, 1);
-                    iRoom.exits.push(testPolar);
-                    rm.links[testDirection] = iRoom;
-                    iRoom.links[testPolar] = rm;
-                  }
-                  return true;
-                }
-                // Failed to locate an available exit so remove the one from this room.
-                var idx = rm.exits.indexOf(testDirection);
-                rm.exits.splice(idx, 1);
-                return true;
-            }
 
+
+        if(iRoom) {
+            // Test if rm has an exit in the opposite of the testing direction
+            // console.log('testing if ' + iRoom.id + ' has an entrance to the '+ testPolar);
+            if(iRoom.hasExit(testPolar)) {
+                // console.log('it does.');
+                if(!rm.hasExit(testDir)) {
+                    // console.log('Room has no matching exit, adding one.');
+                    rm.exits.push(testPolar);
+                }
+                rm.links[testDir] = iRoom;
+                iRoom.links[testPolar] = rm;
+            } else {
+                // console.log('it does not. Removing exit from this room.');
+                var idx = rm.exits.indexOf(testDir);
+                rm.exits.splice(idx, 1);
+            }
         }
-        //console.log(e + ": ", or);
     }            
     return true;
   }

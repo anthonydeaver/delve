@@ -34,40 +34,6 @@ var DMap = (function () {
         this._map = g;
     };
 
-    DMap.prototype.addRoom = function (rm, direction, target) {
-        var t, xPos, yPos;
-        var txt;
-        if (target === null) {
-            xPos = 1080;
-            yPos = 1500;
-        } else {
-            t = $('#' + target);
-            xPos = parseInt($(t).css('left'), 10);
-            yPos = parseInt($(t).css('top'), 10);
-        }
-        switch (direction) {
-            case 'north':
-                yPos -= 40;
-                break;
-            case 'east':
-                xPos += 120;
-                break;
-            case 'south':
-                yPos += 40;
-                break;
-            case 'west':
-                xPos -= 120;
-                break;
-            default:
-                break;
-        }
-        var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
-        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $(this._map).append(sp);
-
-        this.addExits(yPos, xPos, rm);
-    };
-
     DMap.prototype.addExits = function (yPos, xPos, rm) {
         var txt;
         for (var x = 0; x < rm.exits.length; x++) {
@@ -107,6 +73,10 @@ var DMap = (function () {
             $(this._map).append(marker);
         }
 
+        this.centerMap(yPos, xPos);
+    };
+
+    DMap.prototype.centerMap = function (yPos, xPos) {
         $(this._map).css('top', -(yPos - 200));
         $(this._map).css('left', -(xPos - 200));
     };
@@ -120,6 +90,64 @@ var DMap = (function () {
         var arr = name.split(' ');
         var ret = arr[0][0] + '.' + arr[1];
         return ret;
+    };
+
+    DMap.prototype.shiftView = function (direction, id) {
+        console.log('shifting away from ', id);
+        var xPos = parseInt($('#' + id).css('left'), 10);
+        var yPos = parseInt($('#' + id).css('top'), 10);
+        console.log('xPos: ', xPos);
+        switch (direction) {
+            case 'north':
+                yPos -= 40;
+                break;
+            case 'east':
+                xPos += 120;
+                break;
+            case 'south':
+                yPos += 40;
+                break;
+            case 'west':
+                xPos -= 120;
+                break;
+            default:
+                break;
+        }
+        this.centerMap(yPos, xPos);
+    };
+
+    DMap.prototype.addRoom = function (rm, direction, target) {
+        var t, xPos, yPos;
+        var txt;
+        if (target === null) {
+            xPos = 1080;
+            yPos = 1500;
+        } else {
+            t = $('#' + target);
+            xPos = parseInt($(t).css('left'), 10);
+            yPos = parseInt($(t).css('top'), 10);
+        }
+        switch (direction) {
+            case 'north':
+                yPos -= 40;
+                break;
+            case 'east':
+                xPos += 120;
+                break;
+            case 'south':
+                yPos += 40;
+                break;
+            case 'west':
+                xPos -= 120;
+                break;
+            default:
+                break;
+        }
+        var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
+        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
+        $(this._map).append(sp);
+
+        this.addExits(yPos, xPos, rm);
     };
     return DMap;
 })();
@@ -648,11 +676,27 @@ var RoomManager = (function () {
         }
         var rm;
 
+        switch (dot) {
+            case 'north':
+                this._gridCoord.y--;
+                break;
+            case 'south':
+                this._gridCoord.y++;
+                break;
+            case 'east':
+                this._gridCoord.x++;
+                break;
+            case 'west':
+                this._gridCoord.x--;
+                break;
+        }
+
         if (this._currentRoom.links[dot]) {
             rm = this._currentRoom.links[dot];
-            console.log('new active: ', rm.id);
+            this._map.shiftView(dot, this._currentRoom.id);
             this._currentRoom = rm;
             this._currentRoom.render();
+
             return;
         } else {
             if (!this._deck.length) {
@@ -664,29 +708,10 @@ var RoomManager = (function () {
             }
 
             this._currentRoom.links[dot] = rm;
-
             rm.links[this.getPolar(dot)] = this._currentRoom;
 
-            switch (dot) {
-                case 'north':
-                    this._gridCoord.y--;
-                    break;
-                case 'south':
-                    this._gridCoord.y++;
-                    break;
-                case 'east':
-                    this._gridCoord.x++;
-                    break;
-                case 'west':
-                    this._gridCoord.x--;
-                    break;
-            }
-
-            console.log('this._gridCoord.x: ', this._gridCoord.x);
-            console.log('this._gridCoord.y: ', this._gridCoord.y);
-
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
-            if (this.checkForConnections(rm, dot)) {
+            if (this.scanGrid(rm, dot)) {
                 this._map.addRoom(rm, dot, this._currentRoom.id);
                 this._currentRoom = rm;
                 this._currentRoom.render();
@@ -696,16 +721,17 @@ var RoomManager = (function () {
         }
     };
 
-    RoomManager.prototype.checkForConnections = function (rm, dot) {
+    RoomManager.prototype.scanGrid = function (rm, dot) {
         var dirs = ['north', 'south', 'east', 'west'];
         for (var i = 0; i < dirs.length; i++) {
-            var testDirection = dirs[i];
-            var testPolar = this.getPolar(testDirection);
+            var testDir = dirs[i];
+            var testPolar = this.getPolar(testDir);
             var tRoom = 'xxx';
-            if (testDirection == this.getPolar(dot)) {
+
+            if (testDir == dot) {
                 continue;
             }
-            switch (testDirection) {
+            switch (testDir) {
                 case 'north':
                     tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
                     break;
@@ -713,51 +739,27 @@ var RoomManager = (function () {
                     tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
                     break;
                 case 'east':
-                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
                     break;
                 case 'west':
-                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                    break;
+                default:
                     break;
             }
             var iRoom = this._rooms[tRoom];
             console.log('iRoom: ', tRoom);
+
             if (iRoom) {
-                console.log('testing if ' + tRoom + ' has an exit to the ' + testDirection);
-                if (iRoom.hasExit(testDirection)) {
-                    console.log('has cooresponding exit');
-
-                    if (rm.hasExit(testPolar)) {
-                        console.log('excellent!');
-
-                        rm.links[testPolar] = iRoom;
-                        iRoom.links[testDirection] = rm;
-                        return true;
-                    } else {
-                        console.log('we have no exit');
-
+                if (iRoom.hasExit(testPolar)) {
+                    if (!rm.hasExit(testDir)) {
                         rm.exits.push(testPolar);
-                        rm.links[testPolar] = iRoom;
-                        iRoom.links[testDirection] = rm;
-                        return true;
                     }
+                    rm.links[testDir] = iRoom;
+                    iRoom.links[testPolar] = rm;
                 } else {
-                    console.log('neighbor room does not have a connection');
-
-                    for (var x = 0; x < iRoom.exits.length; x++) {
-                        var ex = iRoom.exits[x];
-                        if (!iRoom.links[ex]) {
-                            console.log('available exit, shift it');
-                            iRoom.exits.splice(x, 1);
-                            iRoom.exits.push(testPolar);
-                            rm.links[testDirection] = iRoom;
-                            iRoom.links[testPolar] = rm;
-                        }
-                        return true;
-                    }
-
-                    var idx = rm.exits.indexOf(testDirection);
+                    var idx = rm.exits.indexOf(testDir);
                     rm.exits.splice(idx, 1);
-                    return true;
                 }
             }
         }
