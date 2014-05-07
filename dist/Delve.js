@@ -34,40 +34,6 @@ var DMap = (function () {
         this._map = g;
     };
 
-    DMap.prototype.addRoom = function (rm, direction, target) {
-        var t, xPos, yPos;
-        var txt;
-        if (target === null) {
-            xPos = 1080;
-            yPos = 1500;
-        } else {
-            t = $('#' + target);
-            xPos = parseInt($(t).css('left'), 10);
-            yPos = parseInt($(t).css('top'), 10);
-        }
-        switch (direction) {
-            case 'north':
-                yPos -= 40;
-                break;
-            case 'east':
-                xPos += 120;
-                break;
-            case 'south':
-                yPos += 40;
-                break;
-            case 'west':
-                xPos -= 120;
-                break;
-            default:
-                break;
-        }
-        var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
-        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
-        $(this._map).append(sp);
-
-        this.addExits(yPos, xPos, rm);
-    };
-
     DMap.prototype.addExits = function (yPos, xPos, rm) {
         var txt;
         for (var x = 0; x < rm.exits.length; x++) {
@@ -107,6 +73,10 @@ var DMap = (function () {
             $(this._map).append(marker);
         }
 
+        this.centerMap(yPos, xPos);
+    };
+
+    DMap.prototype.centerMap = function (yPos, xPos) {
         $(this._map).css('top', -(yPos - 200));
         $(this._map).css('left', -(xPos - 200));
     };
@@ -121,14 +91,81 @@ var DMap = (function () {
         var ret = arr[0][0] + '.' + arr[1];
         return ret;
     };
+
+    DMap.prototype.shiftView = function (direction, id) {
+        console.log('shifting away from ', id);
+        var xPos = parseInt($('#' + id).css('left'), 10);
+        var yPos = parseInt($('#' + id).css('top'), 10);
+        console.log('xPos: ', xPos);
+        switch (direction) {
+            case 'north':
+                yPos -= 40;
+                break;
+            case 'east':
+                xPos += 120;
+                break;
+            case 'south':
+                yPos += 40;
+                break;
+            case 'west':
+                xPos -= 120;
+                break;
+            default:
+                break;
+        }
+        this.centerMap(yPos, xPos);
+    };
+
+    DMap.prototype.addRoom = function (rm, direction, target) {
+        var t, xPos, yPos;
+        var txt;
+        if (target === null) {
+            xPos = 1080;
+            yPos = 1500;
+        } else {
+            t = $('#' + target);
+            xPos = parseInt($(t).css('left'), 10);
+            yPos = parseInt($(t).css('top'), 10);
+        }
+        switch (direction) {
+            case 'north':
+                yPos -= 40;
+                break;
+            case 'east':
+                xPos += 120;
+                break;
+            case 'south':
+                yPos += 40;
+                break;
+            case 'west':
+                xPos -= 120;
+                break;
+            default:
+                break;
+        }
+        var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
+        var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
+        $(this._map).append(sp);
+
+        this.addExits(yPos, xPos, rm);
+    };
     return DMap;
 })();
 var Engine = (function () {
     function Engine(o) {
+        var _this = this;
         this._mappings = {
             '0001': 'haunted_mansion'
         };
+<<<<<<< HEAD
         this._world = o.world;
+=======
+        this._version = '0.0.0.1';
+        this._onShowHelp = function (e) {
+            return _this.onShowHelp(e);
+        };
+        var world = this._mappings[o.world || '0001'];
+>>>>>>> 8b905df99f54398758b68f9fbd49b27a27273270
 
         this.loadConfig();
     }
@@ -142,6 +179,15 @@ var Engine = (function () {
 
     Engine.prototype.registerEvents = function () {
         $event.bind('error', this.throwError);
+
+        $event.bind('displayHelp', this._onShowHelp);
+    };
+
+    Engine.prototype.onShowHelp = function (e) {
+        console.log('showing help');
+        new Modal({
+            title: 'Delve Help', msg: "" + "It's simple really, you just enter commands into the command bar (the black bar at the bottom of the screen) and things happen." + "Currently there are # supported commands:<br />" + "<ul>" + "<li><i>GO</i> {direction} - where direction is any of the exits listed for the current room (north, south, etc...)</li>" + "<li><i>HELP</i> (obviously)</li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>" + "</ul>"
+        });
     };
 
     Engine.prototype.loadFile = function (url) {
@@ -337,7 +383,11 @@ var Parser = (function () {
         this._onDataDump = function () {
             _this.onDataDump();
         };
+        this._execute = function (e) {
+            _this.execute(e);
+        };
         this._console = $('#feedback');
+        console.log('console: ', this._console);
         this.registerEvents();
     }
     Parser.prototype.declareCantDo = function (cmd, args) {
@@ -351,8 +401,9 @@ var Parser = (function () {
     };
 
     Parser.prototype.updateConsole = function (msg) {
-        this._console.append('<br /><span>' + msg + '</span>');
-        this._console[0].scrollTop = this._console.scrollHeight;
+        var console = $('#feedback');
+        console.append('<br /><span>' + msg + '</span>');
+        console[0].scrollTop = console[0].scrollHeight;
     };
 
     Parser.prototype.handleShowCommand = function (args) {
@@ -392,7 +443,7 @@ var Parser = (function () {
             if (e.which === 13) {
                 var val = $(this).val();
                 $(this).val('');
-                that.execute(val);
+                that._execute(val);
             }
         });
     };
@@ -505,8 +556,6 @@ var Room = (function () {
     };
 
     Room.prototype.render = function () {
-        console.log('rendering: ', this.id);
-        ;
         $('#map span[type="room"]').removeClass('current');
         $('#exits ul').html('');
         $('[data-dir]').each(function () {
@@ -550,9 +599,9 @@ var Room = (function () {
 var RoomManager = (function () {
     function RoomManager(filename, handler) {
         var _this = this;
-        this._rooms = [];
-        this._deck = {};
-        this._activeRoom = null;
+        this._deck = [];
+        this._rooms = {};
+        this._currentRoom = null;
         this._startRoom = null;
         this._gridCoord = { x: 0, y: 0, z: 0 };
         this._mapGrid = [];
@@ -566,9 +615,12 @@ var RoomManager = (function () {
         var that = this;
         $.getJSON(filename, function (data) {
             var rooms = data.rooms;
+            var cnt = 0;
             for (var idx in rooms) {
-                that._deck[idx] = new Room(rooms[idx]);
+                that._rooms[idx] = new Room(rooms[idx]);
+                cnt++;
             }
+
             that.setUp();
 
             that.registerEvents();
@@ -589,50 +641,55 @@ var RoomManager = (function () {
             console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
         console.log('current grid coords: ', this._gridCoord);
+        console.log('active room: ', this._currentRoom.id);
+        console.log('>>> Deck:', this._deck.toString());
+        console.log('>>> Rooms:', this._rooms);
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
     RoomManager.prototype.resetGame = function () {
-        this._activeRoom = null;
-        this._rooms = [];
+        this._currentRoom = null;
+        this._deck = [];
         this._mapGrid = null;
-        for (var i in this._deck) {
-            this._rooms.push(i);
+        for (var i in this._rooms) {
+            this._deck.push(i);
         }
     };
 
-    RoomManager.prototype.setUp = function () {
-        console.log('Rooms: setup()');
-        var len = 0, offset = 0;
-        for (var i in this._deck) {
-            if (this._deck[i].start) {
-                this._startRoom = this._deck[i];
-
-                delete this._deck[i];
-            } else {
-                this._rooms.push(i);
+    RoomManager.prototype.setStartingRoom = function () {
+        for (var i in this._rooms) {
+            if (this._rooms[i].start) {
+                this._startRoom = this._rooms[i];
             }
         }
-
         if (this._startRoom === null) {
-            var t = this._rooms.pop();
-            this._startRoom = this._deck[t];
-            delete this._deck[t];
+            $event.emit('error', 'Failed to set start room');
         }
+    };
 
-        len = (this._rooms.length + 1) * 2;
-        offset = Math.floor(len / 2);
-        this._gridCoord.x = this._gridCoord.y = offset;
-        this._mapGrid = this.generateGrid(len);
-        this._mapGrid[offset][offset] = this._startRoom.id;
+    RoomManager.prototype.initGrid = function (rm) {
+        var len = 0, offset = 0;
+        len = (this._deck.length + 1);
+        this._gridCoord.x = this._gridCoord.y = len;
+        this._mapGrid = this.generateGrid(len * 2);
+        this._mapGrid[len][len] = rm.id;
+    };
 
-        this._rooms = Utils.shuffle(this._rooms);
+    RoomManager.prototype.setUp = function () {
+        this.setStartingRoom();
+        this._deck = Utils.shuffle(Object.keys(this._rooms));
+
+        var idx = this._deck.indexOf(this._startRoom.id);
+        this._deck.splice(idx, 1);
+        this.initGrid(this._startRoom);
 
         this._map.addRoom(this._startRoom, null, null);
 
-        this._startRoom.position = this._gridCoord;
-        this._activeRoom = this._startRoom;
-        this._activeRoom.render();
+        this._currentRoom = this._startRoom;
+        this._currentRoom.render();
+    };
+
+    RoomManager.prototype.t = function () {
     };
 
     RoomManager.prototype.generateGrid = function (size) {
@@ -640,7 +697,7 @@ var RoomManager = (function () {
         for (var x = 0; x < size; x++) {
             arr[x] = new Array(size);
         }
-
+        console.log('done');
         return arr;
     };
 
@@ -655,103 +712,115 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.onDirectionSelected = function (dot) {
-        if (this._activeRoom.exits.indexOf(dot) === -1) {
+        console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
+        if (this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
             return;
         }
         var rm;
 
-        if (this._activeRoom.links[dot]) {
-            this._activeRoom.links[dot].render();
+        switch (dot) {
+            case 'north':
+                this._gridCoord.y--;
+                break;
+            case 'south':
+                this._gridCoord.y++;
+                break;
+            case 'east':
+                this._gridCoord.x++;
+                break;
+            case 'west':
+                this._gridCoord.x--;
+                break;
+        }
+
+        if (this._currentRoom.links[dot]) {
+            rm = this._currentRoom.links[dot];
+            this._map.shiftView(dot, this._currentRoom.id);
+            this._currentRoom = rm;
+            this._currentRoom.render();
+
+            return;
         } else {
-            if (!this._rooms.length) {
+            if (!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
             rm = this.selectNewRoom(dot);
-            console.log('new room: ', rm);
             if (!rm) {
                 $event.emit('error', 'Failed to load new room!');
             }
 
-            this._activeRoom.links[dot] = rm;
-
-            rm.links[this.getPolar(dot)] = this._activeRoom;
-
-            switch (dot) {
-                case 'north':
-                    this._gridCoord.y--;
-                    break;
-                case 'south':
-                    this._gridCoord.y++;
-                    break;
-                case 'east':
-                    this._gridCoord.x++;
-                    break;
-                case 'west':
-                    this._gridCoord.x--;
-                    break;
-            }
+            this._currentRoom.links[dot] = rm;
+            rm.links[this.getPolar(dot)] = this._currentRoom;
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
-
-            var dirs = ['north', 'south', 'east', 'west'];
-            for (var i = 0; i < dirs.length; i++) {
-                var testDirection = dirs[i];
-                var testPolar = this.getPolar(testDirection);
-                var tRoom = 'xxx';
-                if (testDirection == this.getPolar(dot)) {
-                    continue;
-                }
-                switch (testDirection) {
-                    case 'north':
-                        tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
-                        break;
-                    case 'south':
-                        tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
-                        break;
-                    case 'east':
-                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
-                        break;
-                    case 'west':
-                        tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
-                        break;
-                }
-                console.log('test room: ', tRoom);
-                var iRoom = this._deck[tRoom];
-                if (iRoom) {
-                    if (iRoom.hasExit(testPolar)) {
-                        if (Math.round(Math.random())) {
-                            console.log('add an exit');
-                        } else {
-                            console.log('attempt to shift');
-                        }
-                    } else {
-                        if (Math.round(Math.random())) {
-                            console.log('remove our exit');
-                        } else {
-                            console.log('attempt to shift');
-                        }
-                    }
-                }
+            if (this.scanGrid(rm, dot)) {
+                this._map.addRoom(rm, dot, this._currentRoom.id);
+                this._currentRoom = rm;
+                this._currentRoom.render();
+            } else {
+                console.log('failed to check connections');
             }
-
-            this._map.addRoom(rm, dot, this._activeRoom.id);
-
-            this._activeRoom = rm;
-            this._activeRoom.render();
         }
     };
 
+    RoomManager.prototype.scanGrid = function (rm, dot) {
+        var dirs = ['north', 'south', 'east', 'west'];
+        for (var i = 0; i < dirs.length; i++) {
+            var testDir = dirs[i];
+            var testPolar = this.getPolar(testDir);
+            var tRoom = 'xxx';
+
+            if (testDir == dot) {
+                continue;
+            }
+            switch (testDir) {
+                case 'north':
+                    tRoom = this._mapGrid[this._gridCoord.y - 1][this._gridCoord.x];
+                    break;
+                case 'south':
+                    tRoom = this._mapGrid[this._gridCoord.y + 1][this._gridCoord.x];
+                    break;
+                case 'east':
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x + 1];
+                    break;
+                case 'west':
+                    tRoom = this._mapGrid[this._gridCoord.y][this._gridCoord.x - 1];
+                    break;
+                default:
+                    break;
+            }
+            var iRoom = this._rooms[tRoom];
+            console.log('iRoom: ', tRoom);
+
+            if (iRoom) {
+                if (iRoom.hasExit(testPolar)) {
+                    if (!rm.hasExit(testDir)) {
+                        rm.exits.push(testPolar);
+                    }
+                    rm.links[testDir] = iRoom;
+                    iRoom.links[testPolar] = rm;
+                } else {
+                    var idx = rm.exits.indexOf(testDir);
+                    rm.exits.splice(idx, 1);
+                }
+            }
+        }
+        return true;
+    };
+
     RoomManager.prototype.selectNewRoom = function (e) {
-        if (!this._rooms.length) {
+        console.log('exit: ', e);
+        if (!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
-        var r = this._rooms.pop();
-        var rm = this._deck[r];
+        var r = this._deck.shift();
+        var rm = this._rooms[r];
 
-        if (rm.hasExit(e)) {
+        if (rm.hasExit(this.getPolar(e))) {
             return rm;
         }
+
         var that = this;
         var cnt = 0;
 
@@ -782,36 +851,6 @@ var RoomManager = (function () {
         return this._startRoom;
     };
     return RoomManager;
-})();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
 })();
 var Player = (function () {
     function Player() {
@@ -851,4 +890,34 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
+})();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
 })();

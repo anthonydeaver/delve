@@ -16,7 +16,7 @@ class Engine implements IGame{
   // private _roomManager: Rooms;
   private _version:string;
 
-  // private _onShowHelp = (e) => this.onShowHelp(e);
+  private _onShowHelp = (e) => this.onShowHelp(e);
   // private _log = (m) => this.onLog(m);
 
   // Properties
@@ -32,7 +32,7 @@ class Engine implements IGame{
   //  var that = this;
     $event.bind('error', this.throwError);
   //  $event.bind('log', this._log);
-  //  $event.bind('displayHelp', this._onShowHelp);
+   $event.bind('displayHelp', this._onShowHelp);
  //  $('#command input').on('focus', function() {
   //    $(this).val('');
   //  });
@@ -55,21 +55,21 @@ class Engine implements IGame{
   //  // $('#feedback').scrollTop($('#feedback')[0].scrollHeight);
   // }
 
-  // private onShowHelp(e: any) {
-  //  console.log('showing help');
-  //  new Modal({title: 'Delve Help', msg: "" 
-  //    + "It's simple really, you just enter commands into the command bar (the black bar at the bottom of the screen) and things happen."
-  //    + "Currently there are # supported commands:<br />"
-  //    + "<ul>"
-  //    + "<li><i>GO</i> {direction} - where direction is any of the exits listed for the current room (north, south, etc...)</li>"
-  //    + "<li><i>HELP</i> (obviously)</li>"
-  //    + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
-  //    + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
-  //    + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
-  //    + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
-  //    + "</ul>"
-  //    });
-  // }
+  private onShowHelp(e: any) {
+   console.log('showing help');
+   new Modal({title: 'Delve Help', msg: "" 
+     + "It's simple really, you just enter commands into the command bar (the black bar at the bottom of the screen) and things happen."
+     + "Currently there are # supported commands:<br />"
+     + "<ul>"
+     + "<li><i>GO</i> {direction} - where direction is any of the exits listed for the current room (north, south, etc...)</li>"
+     + "<li><i>HELP</i> (obviously)</li>"
+     + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
+     + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
+     + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
+     + "<li><i>LOOK</i> - Lets you look at various objects in the room. Might be a good way to.... 'find' things. </li>"
+     + "</ul>"
+     });
+  }
   
   private loadFile(url) {
     // Return a new promise.

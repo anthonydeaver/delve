@@ -27,6 +27,7 @@ class Parser implements IGame {
 	};
 
 	private _onDataDump = () => { this.onDataDump(); }
+	private _execute = (e) => { this.execute(e); }
 
 	// Private methods
 	private declareCantDo(cmd, args) {
@@ -41,9 +42,9 @@ class Parser implements IGame {
 	}
 
 	private updateConsole(msg) {
-		
-		this._console.append('<br /><span>' + msg + '</span>');
-		this._console[0].scrollTop = this._console.scrollHeight;
+		var console = $('#feedback')
+		console.append('<br /><span>' + msg + '</span>');
+		console[0].scrollTop = console[0].scrollHeight;
 	}
 
 	private handleShowCommand(args: any) {
@@ -80,7 +81,7 @@ class Parser implements IGame {
 	     if(e.which === 13) {
 	       var val = $(this).val();
 	       $(this).val('');
-	       that.execute(val);
+	       that._execute(val);
 	     }
 	   });
 
@@ -120,6 +121,7 @@ class Parser implements IGame {
 
 	constructor() {
 		this._console = $('#feedback');
+		console.log('console: ', this._console);
 		this.registerEvents();
 	}
 }

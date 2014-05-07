@@ -19,6 +19,23 @@
          "hasTreasure":false,
          "start":true
       },
+      "pantry":{
+         "name":"Pantry",
+         "id":"pantry",
+         "desc":"This is where the food is at.",
+         "exits":[
+            "north"
+         ],
+         "links":{
+
+         },
+         "position":[
+
+         ],
+         "hasMonster":true,
+         "hasTreasure":true,
+         "start":false
+      },
       "library":{
          "name":"Library",
          "id":"library",
@@ -109,23 +126,6 @@
          ],
          "hasMonster":true,
          "hasTreasure":false,
-         "start":false
-      },
-      "pantry":{
-         "name":"Pantry",
-         "id":"pantry",
-         "desc":"This is where the food is at.",
-         "exits":[
-            "north"
-         ],
-         "links":{
-
-         },
-         "position":[
-
-         ],
-         "hasMonster":true,
-         "hasTreasure":true,
          "start":false
       },
       "billiard_room":{
