@@ -128,13 +128,9 @@ var Engine = (function () {
         this._mappings = {
             '0001': 'haunted_mansion'
         };
-        this._version = '0.0.0.1';
-        var world = this._mappings[o.world || '0001'];
+        this._world = o.world;
 
-        new Parser();
-        new RoomManager('environs/' + world + '/rooms.json');
-
-        this.injectUI(world);
+        this.loadConfig();
     }
     Object.defineProperty(Engine.prototype, "version", {
         get: function () {
@@ -148,6 +144,47 @@ var Engine = (function () {
         $event.bind('error', this.throwError);
     };
 
+    Engine.prototype.loadFile = function (url) {
+        return new Promise(function (resolve, reject) {
+            var req = new XMLHttpRequest();
+            req.open('GET', url);
+
+            req.onload = function () {
+                if (req.status == 200) {
+                    resolve(req.response);
+                } else {
+                    reject(Error(req.statusText));
+                }
+            };
+
+            req.onerror = function () {
+                reject(Error("Network Error"));
+            };
+
+            req.send();
+        });
+    };
+    Engine.prototype.loadConfig = function () {
+        var cfg = this.loadFile('config.json');
+        var that = this;
+
+        cfg.then(function (response) {
+            var json = JSON.parse(response);
+            that.handleConfigLoaded(json);
+        }, function (error) {
+            console.error("Failed!", error);
+        });
+    };
+
+    Engine.prototype.handleConfigLoaded = function (cfg) {
+        this._version = cfg.version;
+        this._mappings = cfg.mappings;
+
+        console.log('version: ', this._version);
+    };
+    Engine.prototype.loadRooms = function () {
+    };
+
     Engine.prototype.onDataDump = function () {
     };
 
@@ -156,12 +193,13 @@ var Engine = (function () {
     };
 
     Engine.prototype.injectUI = function (theme) {
+        var world = this._mappings[this._world || '0001'];
         var head = document.getElementsByTagName("head")[0];
         var linkNode = document.createElement("link");
         var that = this;
         linkNode.setAttribute('rel', 'stylesheet');
         linkNode.type = "text/css";
-        linkNode.href = '/environs/' + theme + '/assets/theme.css';
+        linkNode.href = '/environs/' + world + '/assets/theme.css';
 
         head.insertBefore(linkNode, head.firstChild);
     };

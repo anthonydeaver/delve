@@ -1,7 +1,3 @@
 {
-	"config" : {
-		"mappings" : {
-	    "0001": "haunted_mansion"
-	  }
-	}
+	"shuffled":true
 }
