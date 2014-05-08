@@ -3,6 +3,7 @@ class RoomManager {
 
   private _deck: any = [];
   private _rooms: any = {};
+  private _rooms2: any = [];
   private _map: any;
   private _currentRoom: Room = null;
   private _startRoom: Room = null;
@@ -27,62 +28,68 @@ class RoomManager {
           console.log('arr['+i+']: ', this._mapGrid[i].toString());
       }
       console.log('current grid coords: ', this._gridCoord);
+      console.log('start room: ', this._startRoom.id);
       console.log('active room: ', this._currentRoom.id);
       console.log('>>> Deck:', this._deck.toString());
-      console.log('>>> Rooms:', this._rooms);
+      console.log('>>> Rooms:', this._rooms2);
       console.log('+++++++++++++++++++++++++++++++++');
   }
 
-  private resetGame() {
-      this._currentRoom = null;
-      this._deck = [];
-      this._mapGrid = null;
-      for(var i in this._rooms) {
-          this._deck.push(i);
-      }
-  }
+    private resetGame() {
+        this._currentRoom = null;
+        this._deck = [];
+        this._mapGrid = null;
+        for(var i in this._rooms) {
+            this._deck.push(i);
+        }
+    }
 
-  private setStartingRoom() {
-      for(var i in this._rooms) {
-          if(this._rooms[i].start) {
-              this._startRoom = this._rooms[i];
-          }
-      }
-      if(this._startRoom === null) { $event.emit('error','Failed to set start room'); }
-  }
 
-  /*
+    /*
       The grid is twice as wide as the number of rooms simply to account for the (remote)
       possibility that all the rooms lay out in a completely horizontal pattern.
        The chances of it happening are close to nil, but....
-  */
-  private initGrid(rm) {
-      var len = 0, offset = 0;
-      len = (this._deck.length + 1);
-      this._gridCoord.x = this._gridCoord.y = len;
-      this._mapGrid = this.generateGrid(len * 2);
-      this._mapGrid[len][len] = rm.id;
-  }
+    */
+    private initGrid(rm) {
+        var len = 0, offset = 0;
+        len = (this._deck.length + 1);
+        this._gridCoord.x = this._gridCoord.y = len;
+        this._mapGrid = this.generateGrid(len * 2);
+        this._mapGrid[len][len] = rm.id;
+    }
 
-  private setUp() {
-      this.setStartingRoom();
-      this._deck = Object.keys(this._rooms);
-      if(this._shuffle) {
-        this._deck = Utils.shuffle(this._deck);
-      }
-      // Remove the starting room from the '_deck' but not the _rooms
-      var idx = this._deck.indexOf(this._startRoom.id);
-      this._deck.splice(idx, 1);
-      this.initGrid(this._startRoom);
-      // insert into map
-      this._map.addRoom(this._startRoom, null, null);
+    private parseConfig(cfg) {
+        if(cfg.shuffle !== undefined) { this._shuffle = cfg.shuffle; }
 
-      // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
-      this._currentRoom = this._startRoom;
-      this._currentRoom.render();
-  }
+        for(var x = 0; x < cfg.levels.length; x++) {
+            this._rooms2[x] = {};
+            var lvl = cfg.levels[x];
+            for(var rm in lvl) {
+                this._rooms2[x][rm] = new Room(lvl[rm]);
+            }
+        }
 
-  private t() {}
+        this._map = new DMap(cfg.start_level);
+
+        this._startRoom = this._rooms2[cfg.start_level][cfg.start_room];
+        this._deck = Object.keys(this._rooms2[cfg.start_level]);
+        console.log('shuffle: ', this._shuffle);
+        if(this._shuffle) {
+            this._deck = Utils.shuffle(this._deck);
+        }
+
+        // Remove the starting room from the '_deck' but not the _rooms
+        var idx = this._deck.indexOf(cfg.start_room);
+        this._deck.splice(idx, 1);
+
+        this.initGrid(this._startRoom);
+        // insert into map
+        this._map.addRoom(this._startRoom, null, null);
+
+        // Starting spot is always 0,0,0 per Sheldon Cooper (RE: removed time index. For now ;) )
+        this._currentRoom = this._startRoom;
+        this._currentRoom.render();
+    }
 
   // creates an x by x grid for the map where 'x' is the number of rooms/cards in the deck
   private generateGrid(size: number) {
@@ -99,76 +106,81 @@ class RoomManager {
           'north':'south',
           'south':'north',
           'east' :'west',
-          'west' :'east'
+          'west' :'east',
+          'up'   : 'down',
+          'down' : 'up'
       };
       return polar[dir];
   }
-  /**
-   * Executed when a valid direction to travel is selected
-   * THis thing is way too large and unwieldy. Need to break it up.
-   * @param {string} dot Direction selected by the user (i.e. 'north')
-   */
-  private onDirectionSelected(dot: string) {
-    var target;
-    if(dot == 'up' || dot === 'down') {
-        this._map.newLevel(dot);
-        target = null;
-    } else {
-        target = this._currentRoom.id;
-    }
-      // Make sure the active room has that exit available
-      console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
-      if(this._currentRoom.exits.indexOf(dot) === -1) {
-          $event.emit('nojoy', "You can't go that way.");
-          return;
-      }
-      var rm;
-          // set map coordinates
-          switch(dot) {
-              case 'north' :
-                  this._gridCoord.y--;
-                  break;
-              case 'south' :
-                  this._gridCoord.y++;
-                  break;
-              case 'east' :
-                  this._gridCoord.x++;
-                  break;
-              case 'west' :
-                  this._gridCoord.x--;
-                  break;
-          }
-      //First, check the current room for active connections for the selected direction
-      if(this._currentRoom.links[dot]) {
-          // already have a connection
-          rm = this._currentRoom.links[dot];
-          this._map.shiftView(dot, this._currentRoom.id);
-          this._currentRoom = rm;
-          this._currentRoom.render();
-
-          return;
-      } else {
-          if(!this._deck.length) {
-              $event.emit('nojoy', 'That exit is sealed by some unknown force.');
-          }
-          rm = this.selectNewRoom(dot);
-          if(!rm) { $event.emit('error','Failed to load new room!'); }
-
-          // Set up the links from the exiting room to the entering room and visa-versa
-          this._currentRoom.links[dot] = rm;
-          rm.links[this.getPolar(dot)] = this._currentRoom;
-
-          this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
-          if(this.scanGrid(rm, dot)) {
-            /* draw on the map */
-            this._map.addRoom(rm, dot, target);
+    /**
+    * Executed when a valid direction to travel is selected
+    * THis thing is way too large and unwieldy. Need to break it up.
+    * @param {string} dot Direction selected by the user (i.e. 'north')
+    */
+    private onDirectionSelected(dot: string) {
+        var target;
+        if(dot === 'up' || dot === 'down') {
+            this._map.newLevel(dot);
+            // if(dot === 'up'
+            // this._map.goUp();
+            // // Search new level for room with down.
+            target = null;
+        } else {
+            target = this._currentRoom.id;
+        }
+        // Make sure the active room has that exit available
+        console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
+        if(this._currentRoom.exits.indexOf(dot) === -1) {
+            $event.emit('nojoy', "You can't go that way.");
+            return;
+        }
+        var rm;
+            // set map coordinates
+            switch(dot) {
+                case 'north' :
+                    this._gridCoord.y--;
+                    break;
+                case 'south' :
+                    this._gridCoord.y++;
+                    break;
+                case 'east' :
+                    this._gridCoord.x++;
+                    break;
+                case 'west' :
+                    this._gridCoord.x--;
+                    break;
+            }
+        //First, check the current room for active connections for the selected direction
+        if(this._currentRoom.links[dot]) {
+            // already have a connection
+            rm = this._currentRoom.links[dot];
+            this._map.shiftView(dot, this._currentRoom.id);
             this._currentRoom = rm;
             this._currentRoom.render();
-          } else {
-            console.log('failed to check connections')
-          }
-      }
-  }
+
+            return;
+        } else {
+            if(!this._deck.length) {
+                $event.emit('nojoy', 'That exit is sealed by some unknown force.');
+            }
+            rm = this.selectNewRoom(dot);
+            if(!rm) { $event.emit('error','Failed to load new room!'); }
+
+            // Set up the links from the exiting room to the entering room and visa-versa
+            this._currentRoom.links[dot] = rm;
+            rm.links[this.getPolar(dot)] = this._currentRoom;
+
+            this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
+            if(this.scanGrid(rm, dot)) {
+              /* draw on the map */
+              this._map.addRoom(rm, dot, target);
+              this._currentRoom = rm;
+              this._currentRoom.render();
+            } else {
+              console.log('failed to check connections')
+            }
+        }
+    }
 
   /**
    * Go through possible exits and look for existing rooms on the grid in that
@@ -246,7 +258,8 @@ class RoomManager {
           $event.emit('error', 'no more rooms');
       }
       var r = this._deck.shift();
-      var rm = this._rooms[r];
+      var lvl = this._map.level;
+      var rm = this._rooms2[lvl][r];
 
       if(rm.hasExit(this.getPolar(e))) { 
           return rm; //Good as is
@@ -304,16 +317,13 @@ class RoomManager {
   //         if(handler) handler();
   //     });
   // }
+  
   constructor(config, handler?: any) {
       // The handler callback is strictly for unit testing
-      this._map = new DMap();
       // Settings
-      if(config.shuffle) { this._shuffle = config.shuffle; }
-      var rooms = config.rooms;
-      for(var idx in rooms) {
-          this._rooms[idx] = new Room(rooms[idx]);
-      }
-      this.setUp();
+      this.parseConfig(config);
+      
+      //this.setUp();
 
       this.registerEvents();
 

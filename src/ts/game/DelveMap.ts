@@ -54,11 +54,6 @@ class DMap {
         $(this._map).css('left',-(xPos - 200));
 	}
 
-	private changeLevels(o: number, n: number) {
-		$('#map article[level="' + o + '"]').fadeTo("slow", 0.1);
-		$('#map article[level="' + n + '"]').fadeIn("slow");
-	}
-
 	private shorten(name) {
 		var arr = name.split(' ');
 		var ret = arr[0][0] + '.' + arr[1];
@@ -67,6 +62,7 @@ class DMap {
 
 	private createLevel() {
 		var lvl = this._level;
+		console.log('lvl: ', lvl);
 		var g = $('#map article[level="'+ lvl+'"] div');
 		if(g.length == 0) {
 			// lvl = this._level++
@@ -80,6 +76,16 @@ class DMap {
 		this._map = g;
 
 		//this._level
+	}
+
+	public goUp() {
+		this._level++;
+		this.createLevel();
+	}
+
+	public goDown() {
+		this._level--;
+		this.createLevel();
 	}
 
 	public newLevel(dir) {
@@ -111,6 +117,7 @@ class DMap {
 	}
 
 	public addRoom(rm: any, direction: any, target) {
+		console.log('mapping ', rm.id);
 		var t, xPos, yPos;
 		var txt;
 		if(target === null) { // This is the starting room
@@ -139,15 +146,17 @@ class DMap {
         }
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
         var sp = $('<span />').attr('id', rm.id).attr('type','room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
+        console.log('sp: ', this._map);
        	$(this._map).append(sp);		
 
         // Add in the direction markers
         this.addExits(yPos, xPos, rm);
 	}
 
-	constructor() {
+	constructor(lvl: number) {
+		this._level = lvl;
 		this.createLevel();
-		this._map = $('#map article[level="1"] div');
+		//this._map = $('#map article[level="1"] div');
 		this.registerEvents();
 	}	
 }

@@ -37,7 +37,7 @@ module.exports = function(grunt) {
     },
     clean : {
       main : {
-          src : [ "src/ts/game/*.js"]
+          src : [ "src/ts/game/*.js", 'dist/<%= pkg.name %>.js']
       }
     },
     concat: {
@@ -90,7 +90,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= jshint.files %>', '<%= typescript.base.src %>', 'src/css/delve.less'],
-      tasks: ['less','typescript','clean']
+      tasks: ['less','typescript']
     }
   });
 
@@ -104,7 +104,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
 
-  grunt.registerTask('test', ['jshint']);
+  grunt.registerTask('test', ['jshint', 'typescript', 'qunit']);
 
   //grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
   grunt.registerTask('default', ['jshint', 'less', 'typescript', 'uglify', 'copy', 'clean']);

@@ -1,8 +1,9 @@
 var DMap = (function () {
-    function DMap() {
+    function DMap(lvl) {
         this._level = 0;
+        this._level = lvl;
         this.createLevel();
-        this._map = $('#map article[level="1"] div');
+
         this.registerEvents();
     }
     Object.defineProperty(DMap.prototype, "level", {
@@ -72,11 +73,6 @@ var DMap = (function () {
         $(this._map).css('left', -(xPos - 200));
     };
 
-    DMap.prototype.changeLevels = function (o, n) {
-        $('#map article[level="' + o + '"]').fadeTo("slow", 0.1);
-        $('#map article[level="' + n + '"]').fadeIn("slow");
-    };
-
     DMap.prototype.shorten = function (name) {
         var arr = name.split(' ');
         var ret = arr[0][0] + '.' + arr[1];
@@ -85,6 +81,7 @@ var DMap = (function () {
 
     DMap.prototype.createLevel = function () {
         var lvl = this._level;
+        console.log('lvl: ', lvl);
         var g = $('#map article[level="' + lvl + '"] div');
         if (g.length == 0) {
             var map = $('#map');
@@ -95,6 +92,16 @@ var DMap = (function () {
             g = $('#map article[level="' + lvl + '"] div');
         }
         this._map = g;
+    };
+
+    DMap.prototype.goUp = function () {
+        this._level++;
+        this.createLevel();
+    };
+
+    DMap.prototype.goDown = function () {
+        this._level--;
+        this.createLevel();
     };
 
     DMap.prototype.newLevel = function (dir) {
@@ -130,6 +137,7 @@ var DMap = (function () {
     };
 
     DMap.prototype.addRoom = function (rm, direction, target) {
+        console.log('mapping ', rm.id);
         var t, xPos, yPos;
         var txt;
         if (target === null) {
@@ -158,6 +166,7 @@ var DMap = (function () {
         }
         var name = (rm.name.length > 8) ? this.shorten(rm.name) : rm.name;
         var sp = $('<span />').attr('id', rm.id).attr('type', 'room').html(name).css('top', yPos + 'px').css('left', xPos + 'px');
+        console.log('sp: ', this._map);
         $(this._map).append(sp);
 
         this.addExits(yPos, xPos, rm);
@@ -603,6 +612,7 @@ var RoomManager = (function () {
         var _this = this;
         this._deck = [];
         this._rooms = {};
+        this._rooms2 = [];
         this._currentRoom = null;
         this._startRoom = null;
         this._gridCoord = { x: 0, y: 0, z: 0 };
@@ -614,16 +624,7 @@ var RoomManager = (function () {
         this._onDataDump = function (e) {
             _this.onDataDump();
         };
-        this._map = new DMap();
-
-        if (config.shuffle) {
-            this._shuffle = config.shuffle;
-        }
-        var rooms = config.rooms;
-        for (var idx in rooms) {
-            this._rooms[idx] = new Room(rooms[idx]);
-        }
-        this.setUp();
+        this.parseConfig(config);
 
         this.registerEvents();
     }
@@ -640,9 +641,10 @@ var RoomManager = (function () {
             console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
         console.log('current grid coords: ', this._gridCoord);
+        console.log('start room: ', this._startRoom.id);
         console.log('active room: ', this._currentRoom.id);
         console.log('>>> Deck:', this._deck.toString());
-        console.log('>>> Rooms:', this._rooms);
+        console.log('>>> Rooms:', this._rooms2);
         console.log('+++++++++++++++++++++++++++++++++');
     };
 
@@ -655,17 +657,6 @@ var RoomManager = (function () {
         }
     };
 
-    RoomManager.prototype.setStartingRoom = function () {
-        for (var i in this._rooms) {
-            if (this._rooms[i].start) {
-                this._startRoom = this._rooms[i];
-            }
-        }
-        if (this._startRoom === null) {
-            $event.emit('error', 'Failed to set start room');
-        }
-    };
-
     RoomManager.prototype.initGrid = function (rm) {
         var len = 0, offset = 0;
         len = (this._deck.length + 1);
@@ -674,24 +665,37 @@ var RoomManager = (function () {
         this._mapGrid[len][len] = rm.id;
     };
 
-    RoomManager.prototype.setUp = function () {
-        this.setStartingRoom();
-        this._deck = Object.keys(this._rooms);
+    RoomManager.prototype.parseConfig = function (cfg) {
+        if (cfg.shuffle !== undefined) {
+            this._shuffle = cfg.shuffle;
+        }
+
+        for (var x = 0; x < cfg.levels.length; x++) {
+            this._rooms2[x] = {};
+            var lvl = cfg.levels[x];
+            for (var rm in lvl) {
+                this._rooms2[x][rm] = new Room(lvl[rm]);
+            }
+        }
+
+        this._map = new DMap(cfg.start_level);
+
+        this._startRoom = this._rooms2[cfg.start_level][cfg.start_room];
+        this._deck = Object.keys(this._rooms2[cfg.start_level]);
+        console.log('shuffle: ', this._shuffle);
         if (this._shuffle) {
             this._deck = Utils.shuffle(this._deck);
         }
 
-        var idx = this._deck.indexOf(this._startRoom.id);
+        var idx = this._deck.indexOf(cfg.start_room);
         this._deck.splice(idx, 1);
+
         this.initGrid(this._startRoom);
 
         this._map.addRoom(this._startRoom, null, null);
 
         this._currentRoom = this._startRoom;
         this._currentRoom.render();
-    };
-
-    RoomManager.prototype.t = function () {
     };
 
     RoomManager.prototype.generateGrid = function (size) {
@@ -708,15 +712,18 @@ var RoomManager = (function () {
             'north': 'south',
             'south': 'north',
             'east': 'west',
-            'west': 'east'
+            'west': 'east',
+            'up': 'down',
+            'down': 'up'
         };
         return polar[dir];
     };
 
     RoomManager.prototype.onDirectionSelected = function (dot) {
         var target;
-        if (dot == 'up' || dot === 'down') {
+        if (dot === 'up' || dot === 'down') {
             this._map.newLevel(dot);
+
             target = null;
         } else {
             target = this._currentRoom.id;
@@ -829,7 +836,8 @@ var RoomManager = (function () {
             $event.emit('error', 'no more rooms');
         }
         var r = this._deck.shift();
-        var rm = this._rooms[r];
+        var lvl = this._map.level;
+        var rm = this._rooms2[lvl][r];
 
         if (rm.hasExit(this.getPolar(e))) {
             return rm;

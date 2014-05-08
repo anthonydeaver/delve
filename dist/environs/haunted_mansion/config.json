@@ -1,6 +1,7 @@
 {
    "start_room" : "foyer",
    "start_level" : 0,
+   "shuffle": false,
    "levels" : [
       {
          "foyer":{
@@ -57,7 +58,25 @@
             "hasMonster":false,
             "hasTreasure":false
          },
-         "study":{
+         "stairs":{
+            "name":"Stairs",
+            "id":"stairs",
+            "desc":"Step by step",
+            "exits":[
+               "up",
+               "south",
+               "east"
+            ],
+            "links":{
+
+            },
+            "position":[
+
+            ],
+            "hasMonster":false,
+            "hasTreasure":false
+         },
+           "study":{
             "name":"Study",
             "id":"study",
             "desc":"No Ms. Scarlet! Please don't!",
