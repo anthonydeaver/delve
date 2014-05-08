@@ -1,14 +1,18 @@
 var DMap = (function () {
     function DMap() {
-        var _this = this;
-        this._level = 1;
-        this._onGotoLevel = function (e) {
-            _this.onGotoLevel(_this._level + 1);
-        };
-        this.onGotoLevel(this._level);
+        this._level = 0;
+        this.createLevel();
         this._map = $('#map article[level="1"] div');
         this.registerEvents();
     }
+    Object.defineProperty(DMap.prototype, "level", {
+        get: function () {
+            return this._level;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
     DMap.prototype.registerEvents = function () {
         $event.emit('log', 'registering map events');
         var toggle = function () {
@@ -17,21 +21,8 @@ var DMap = (function () {
         };
 
         $event.bind('togglemap', toggle);
-        $event.bind('gotoLevel', this._onGotoLevel);
-        $('#BTN_MAP_TOGGLE').on('click', toggle);
-    };
 
-    DMap.prototype.onGotoLevel = function (lvl) {
-        var g = $('#map article[level="' + lvl + '"] div');
-        if (g.length == 0) {
-            var map = $('#map');
-            var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
-            var cont = $('<div />');
-            art.append(cont);
-            $(map).append(art);
-            g = $('#map article[level="' + lvl + '"] div');
-        }
-        this._map = g;
+        $('#BTN_MAP_TOGGLE').on('click', toggle);
     };
 
     DMap.prototype.addExits = function (yPos, xPos, rm) {
@@ -92,11 +83,33 @@ var DMap = (function () {
         return ret;
     };
 
+    DMap.prototype.createLevel = function () {
+        var lvl = this._level;
+        var g = $('#map article[level="' + lvl + '"] div');
+        if (g.length == 0) {
+            var map = $('#map');
+            var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
+            var cont = $('<div />');
+            art.append(cont);
+            $(map).append(art);
+            g = $('#map article[level="' + lvl + '"] div');
+        }
+        this._map = g;
+    };
+
+    DMap.prototype.newLevel = function (dir) {
+        if (dir === 'up') {
+            this._level++;
+        }
+        if (dir === 'down') {
+            this._level--;
+        }
+        this.createLevel();
+    };
+
     DMap.prototype.shiftView = function (direction, id) {
-        console.log('shifting away from ', id);
         var xPos = parseInt($('#' + id).css('left'), 10);
         var yPos = parseInt($('#' + id).css('top'), 10);
-        console.log('xPos: ', xPos);
         switch (direction) {
             case 'north':
                 yPos -= 40;
@@ -614,6 +627,11 @@ var RoomManager = (function () {
 
         this.registerEvents();
     }
+    RoomManager.prototype.registerEvents = function () {
+        $event.bind('gotoRoom', this._gotoRoom);
+        $event.bind('dump', this._onDataDump);
+    };
+
     RoomManager.prototype.onDataDump = function () {
         var len = this._mapGrid.length;
         console.log('+++++++++++++++++++++++++++++++++');
@@ -696,6 +714,14 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.onDirectionSelected = function (dot) {
+        var target;
+        if (dot == 'up' || dot === 'down') {
+            this._map.newLevel(dot);
+            target = null;
+        } else {
+            target = this._currentRoom.id;
+        }
+
         console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
         if (this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
@@ -739,7 +765,7 @@ var RoomManager = (function () {
 
             this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
             if (this.scanGrid(rm, dot)) {
-                this._map.addRoom(rm, dot, this._currentRoom.id);
+                this._map.addRoom(rm, dot, target);
                 this._currentRoom = rm;
                 this._currentRoom.render();
             } else {
@@ -828,11 +854,6 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.init = function () {
-    };
-
-    RoomManager.prototype.registerEvents = function () {
-        $event.bind('gotoRoom', this._gotoRoom);
-        $event.bind('dump', this._onDataDump);
     };
 
     RoomManager.prototype.getStartRoom = function () {

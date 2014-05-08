@@ -14,6 +14,11 @@ class RoomManager {
   private _gotoRoom = (e) => { this.onDirectionSelected(e); }
   private _onDataDump = (e) => { this.onDataDump(); }
 
+  private registerEvents() {
+      $event.bind('gotoRoom', this._gotoRoom);
+      $event.bind('dump', this._onDataDump);
+  }
+
   private onDataDump() {
       var len = this._mapGrid.length;
       console.log('+++++++++++++++++++++++++++++++++');
@@ -104,7 +109,13 @@ class RoomManager {
    * @param {string} dot Direction selected by the user (i.e. 'north')
    */
   private onDirectionSelected(dot: string) {
-
+    var target;
+    if(dot == 'up' || dot === 'down') {
+        this._map.newLevel(dot);
+        target = null;
+    } else {
+        target = this._currentRoom.id;
+    }
       // Make sure the active room has that exit available
       console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
       if(this._currentRoom.exits.indexOf(dot) === -1) {
@@ -150,7 +161,7 @@ class RoomManager {
           this._mapGrid[this._gridCoord.y][this._gridCoord.x] = rm.id;
           if(this.scanGrid(rm, dot)) {
             /* draw on the map */
-            this._map.addRoom(rm, dot, this._currentRoom.id);
+            this._map.addRoom(rm, dot, target);
             this._currentRoom = rm;
             this._currentRoom.render();
           } else {
@@ -264,11 +275,6 @@ class RoomManager {
 
   private init() {
 
-  }
-
-  private registerEvents() {
-      $event.bind('gotoRoom', this._gotoRoom);
-      $event.bind('dump', this._onDataDump);
   }
 
   // Public Methods

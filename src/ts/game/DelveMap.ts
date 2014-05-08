@@ -8,9 +8,11 @@ map.addRoom(rm);
  */
 class DMap {
 	private _map: HTMLElement;
-	private _level: number = 1;
+	private _level: number = 0;
 
-	private _onGotoLevel = (e) => { this.onGotoLevel(this._level + 1); }
+	get level () {
+		return this._level;
+	}
 
 	private registerEvents() {
 		$event.emit('log', 'registering map events');
@@ -20,22 +22,8 @@ class DMap {
 		};
 
 		$event.bind('togglemap', toggle);
-		$event.bind('gotoLevel', this._onGotoLevel);
+		//$event.bind('gotoLevel', this._onGotoLevel);
 		$('#BTN_MAP_TOGGLE').on('click', toggle);
-	}
-
-	private onGotoLevel(lvl: number) {
-		var g = $('#map article[level="'+ lvl+'"] div');
-		if(g.length == 0) {
-			// lvl = this._level++
-			var map = $('#map');
-			var art = $('<article />').attr('id','wrapper').attr('level',lvl);
-			var cont = $('<div />');
-			art.append(cont);
-			$(map).append(art);
-			g = $('#map article[level="'+ lvl+'"] div');
-		}
-		this._map = g;
 	}
 
 	private addExits(yPos, xPos, rm) {
@@ -77,11 +65,32 @@ class DMap {
 		return ret;
 	}
 
+	private createLevel() {
+		var lvl = this._level;
+		var g = $('#map article[level="'+ lvl+'"] div');
+		if(g.length == 0) {
+			// lvl = this._level++
+			var map = $('#map');
+			var art = $('<article />').attr('id','wrapper').attr('level',lvl);
+			var cont = $('<div />');
+			art.append(cont);
+			$(map).append(art);
+			g = $('#map article[level="'+ lvl+'"] div');
+		}
+		this._map = g;
+
+		//this._level
+	}
+
+	public newLevel(dir) {
+		if(dir === 'up') { this._level++; }
+		if(dir === 'down') { this._level--; }
+		this.createLevel();
+	}
+
 	public shiftView(direction: string, id: string) {
-		console.log('shifting away from ', id);
 		var xPos = parseInt($('#' + id).css('left'), 10);
 		var yPos = parseInt($('#' + id).css('top'), 10);
-		console.log('xPos: ', xPos);
         switch(direction) {
             case 'north':
                 yPos -= 40;
@@ -137,7 +146,7 @@ class DMap {
 	}
 
 	constructor() {
-		this.onGotoLevel(this._level);
+		this.createLevel();
 		this._map = $('#map article[level="1"] div');
 		this.registerEvents();
 	}	
