@@ -206,17 +206,17 @@ class RoomManager {
 
         if(iRoom) {
             // Test if rm has an exit in the opposite of the testing direction
-            // console.log('testing if ' + iRoom.id + ' has an entrance to the '+ testPolar);
+            console.log('testing if ' + iRoom.id + ' has an entrance to the '+ testPolar);
             if(iRoom.hasExit(testPolar)) {
-                // console.log('it does.');
+                console.log('it does.');
                 if(!rm.hasExit(testDir)) {
-                    // console.log('Room has no matching exit, adding one.');
-                    rm.exits.push(testPolar);
+                    console.log('Room has no matching exit, adding one.');
+                    rm.exits.push(testDir);
                 }
                 rm.links[testDir] = iRoom;
                 iRoom.links[testPolar] = rm;
             } else {
-                // console.log('it does not. Removing exit from this room.');
+                console.log('it does not. Removing exit from this room.');
                 var idx = rm.exits.indexOf(testDir);
                 rm.exits.splice(idx, 1);
             }

@@ -138,6 +138,17 @@ class Engine implements IGame{
     linkNode.href = '/environs/' + theme + '/assets/theme.css';
 
     head.insertBefore(linkNode, head.firstChild);
+
+    var title = $('title').html();
+    console.log('title: ', title);
+    // var theme = this._mappings['0001'];
+    // theme = theme.split('_');
+    // console.log('theme: ', theme);
+        // for (var k = 0; k < theme.length; k++) {
+        //   theme[k] = theme[k][0].toUpperCase();
+        // }
+
+        // console.log('theme: ', theme.join(' '));
   }
 
   constructor(o) {

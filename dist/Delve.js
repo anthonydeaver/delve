@@ -234,6 +234,9 @@ var Engine = (function () {
         linkNode.href = '/environs/' + theme + '/assets/theme.css';
 
         head.insertBefore(linkNode, head.firstChild);
+
+        var title = $('title').html();
+        console.log('title: ', title);
     };
     return Engine;
 })();
@@ -775,13 +778,17 @@ var RoomManager = (function () {
             console.log('iRoom: ', tRoom);
 
             if (iRoom) {
+                console.log('testing if ' + iRoom.id + ' has an entrance to the ' + testPolar);
                 if (iRoom.hasExit(testPolar)) {
+                    console.log('it does.');
                     if (!rm.hasExit(testDir)) {
-                        rm.exits.push(testPolar);
+                        console.log('Room has no matching exit, adding one.');
+                        rm.exits.push(testDir);
                     }
                     rm.links[testDir] = iRoom;
                     iRoom.links[testPolar] = rm;
                 } else {
+                    console.log('it does not. Removing exit from this room.');
                     var idx = rm.exits.indexOf(testDir);
                     rm.exits.splice(idx, 1);
                 }
@@ -833,36 +840,6 @@ var RoomManager = (function () {
     };
     return RoomManager;
 })();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
-})();
 var Player = (function () {
     function Player() {
         var _this = this;
@@ -901,4 +878,34 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
+})();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
 })();
