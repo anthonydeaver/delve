@@ -7,102 +7,55 @@
 		<script src="Delve.js" type="text/javascript"></script>
 	</head>
 	<body>
-		<div id="leftCol">
-			<section id="display">
-				<header></header>
-				<article id="desc"></article>
-				<article id="exits">
-					Visible exits are:
-					<ul>
-					</ul>
-				</article>
-			</section>
-		</div>
-		<div id="rightCol">
-			<section id="feedback">
-			</section>
-			<section id="command">
-			Enter Command:<br />
-				<input class="prompt" type="text" value=">"/><input class="input" type="text" />
-			</section>			
-		</div>
-		<!-- 25 'rows' high -->
-		<!-- ~20 pixels per 'row' -->
-		<section id="map" class="draggable">
-			<header>Map</header>
-<!-- 			<article id="wrapper" level="1">
-				<div></div>
-			</article>
- -->		</section>
-		<section id="nav">
-			<header>controls</header>
-				<div id="BTN_MAP_TOGGLE" class="button">Open Map</div>
+<!-- 		<section id="selector">
+		<h2> Select game:</h2>
+			<div>
+				<li data-world='0001'><h3>Haunted Apartment</h3></li>
+			</div>
 		</section>
-		<textarea id="console">
-		</textarea>
-	</body>
-		<script>$(".input").focus();
-			var urlParams;
-			var crunch = function () {
-			    var match,
-			        pl     = /\+/g,  // Regex for replacing addition symbol with a space
-			        search = /([^&=]+)=?([^&]*)/g,
-			        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-			        query  = window.location.search.substring(1);
-
-			    urlParams = {};
-			    while (match = search.exec(query))
-			       urlParams[decode(match[1])] = decode(match[2]);
-			    
-			};
-			crunch();
-			var $event = new Events();
-			var $delve = new Engine(urlParams);
-		</script>
+ -->		<section id="game">
+			<div id="leftCol">
+				<section id="display">
+					<header></header>
+					<article id="desc"></article>
+					<article id="exits">
+						Visible exits are:
+						<ul>
+						</ul>
+					</article>
+				</section>
+			</div>
+			<div id="rightCol">
+				<section id="feedback">
+				</section>
+				<section id="command">
+				Enter Command:<br />
+					<input class="prompt" type="text" value=">"/><input class="input" type="text" />
+				</section>			
+			</div>
+			<!-- 25 'rows' high -->
+			<!-- ~20 pixels per 'row' -->
+			<section id="map" class="draggable">
+				<header>Map</header>
+			</section>
+			<section id="nav">
+				<header>controls</header>
+					<div id="BTN_MAP_TOGGLE" class="button">Open Map</div>
+			</section>
+			<textarea id="console">
+			</textarea>
+		</section>
 		<script>
-		(function($) {
-    $.fn.drags = function(opt) {
-
-        opt = $.extend({handle:"",cursor:"move"}, opt);
-
-        if(opt.handle === "") {
-            var $el = this;
-        } else {
-            var $el = this.find(opt.handle);
-        }
-
-        return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
-            if(opt.handle === "") {
-                var $drag = $(this).addClass('draggable');
-            } else {
-                var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
-            }
-            var z_idx = $drag.css('z-index'),
-                drg_h = $drag.outerHeight(),
-                drg_w = $drag.outerWidth(),
-                pos_y = $drag.offset().top + drg_h - e.pageY,
-                pos_x = $drag.offset().left + drg_w - e.pageX;
-            $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
-                $('.draggable').offset({
-                    top:e.pageY + pos_y - drg_h,
-                    left:e.pageX + pos_x - drg_w
-                }).on("mouseup", function() {
-                    $(this).removeClass('draggable').css('z-index', z_idx);
-                });
-            });
-            e.preventDefault(); // disable selection
-        }).on("mouseup", function() {
-            if(opt.handle === "") {
-                $(this).removeClass('draggable');
-            } else {
-                $(this).removeClass('active-handle').parent().removeClass('draggable');
-            }
-        });
-
-    }
-})(jQuery);
-
-
-$('#map').drags();
+			$('li').on('click', function() {
+				var world = $(this).data('world');
+				$('#selector').hide();
+				$('#game').show();
+				var $event = new Events();
+				var $delve = new Engine({world: world});
+			});
+				var $event = new Events();
+				var $delve = new Engine({world: '0001'});
 		</script>
+	</body>
+
 	</html>

@@ -101,35 +101,19 @@ class Engine implements IGame{
       req.send();
     });
   }
-  private loadConfig() {
-    var cfg = this.loadFile('config.json');
+  private loadThemeConfig(theme) {
+    var cfg = this.loadFile('environs/' + theme + '/config.json');
     var that = this;
 
     cfg.then(function(response) {
       var json = JSON.parse(response);
-      that.handleConfigLoaded(json);
+      new RoomManager(json);
+      that.injectUI(theme);
     }, function(error) {
-      console.error("Failed!", error);
+      that.throwError('Failed to load theme config: ' + theme);
     });
      
   }
-
-
-  private handleConfigLoaded(cfg) {
-    this._version = cfg.version;
-    this._mappings = cfg.mappings;
-    // this._version = cfg.version;
-    // this._version = cfg.version;
-
-     console.log('version: ', this._version);
-  }
-  private loadRooms() {
-    // if localStorage pull it from there
-    // } else {
-      //return this.loadFile('environs/' + world + '/rooms.json');
-    // }
-  }
-  // Public Methods
   public onDataDump() {
 
   }
@@ -146,26 +130,20 @@ class Engine implements IGame{
    * Plugs in the CSS link for the proper theme
    */
   private injectUI(theme: string) {
-    var world = this._mappings[this._world || '0001'];
     var head = document.getElementsByTagName("head")[0];
     var linkNode = document.createElement("link");
     var that = this;
     linkNode.setAttribute('rel', 'stylesheet');
     linkNode.type = "text/css";
-    linkNode.href = '/environs/' + world + '/assets/theme.css';
+    linkNode.href = '/environs/' + theme + '/assets/theme.css';
 
     head.insertBefore(linkNode, head.firstChild);
   }
 
   constructor(o) {
-    this._world = o.world;//this._mappings[o.world || '0001'];
-    // new Player();
-    // init the parser
-    // new Parser();
-    // new RoomManager('environs/' + world + '/rooms.json');
-
+    this._world = o.world;
+    new Parser();
     // this.registerEvents();
-    //this.injectUI(o.world);
-    this.loadConfig();
+    this.loadThemeConfig(this._mappings[o.world]);
   }
 }

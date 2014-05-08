@@ -8,6 +8,7 @@ class RoomManager {
   private _startRoom: Room = null;
   private _gridCoord = {x:0, y:0, z:0};
   private _mapGrid: any = [];
+  private _shuffle: boolean = true;
 
 
   private _gotoRoom = (e) => { this.onDirectionSelected(e); }
@@ -60,7 +61,10 @@ class RoomManager {
 
   private setUp() {
       this.setStartingRoom();
-      this._deck = Utils.shuffle(Object.keys(this._rooms));
+      this._deck = Object.keys(this._rooms);
+      if(this._shuffle) {
+        this._deck = Utils.shuffle(this._deck);
+      }
       // Remove the starting room from the '_deck' but not the _rooms
       var idx = this._deck.indexOf(this._startRoom.id);
       this._deck.splice(idx, 1);
@@ -272,26 +276,40 @@ class RoomManager {
       return this._startRoom;
   }
 
-  constructor(filename, handler?: any) {
+  // constructor(filename, handler?: any) {
+  //     // The handler callback is strictly for unit testing
+  //     this._map = new DMap();
+  //     var that = this;
+  //     $.getJSON(filename, function(data) {
+  //         var rooms = data.rooms;
+  //         var cnt = 0;
+  //         for(var idx in rooms) {
+  //             that._rooms[idx] = new Room(rooms[idx]);
+  //             cnt++;
+  //         }
+  //         //that._mapGrid = that.generateGrid(cnt * 2);
+  //         that.setUp();
+
+  //         that.registerEvents();
+  //     }).done(function() {
+  //         if(handler) handler();
+  //     }).fail(function() {
+  //         console.log('failed'); 
+  //         if(handler) handler();
+  //     });
+  // }
+  constructor(config, handler?: any) {
       // The handler callback is strictly for unit testing
       this._map = new DMap();
-      var that = this;
-      $.getJSON(filename, function(data) {
-          var rooms = data.rooms;
-          var cnt = 0;
-          for(var idx in rooms) {
-              that._rooms[idx] = new Room(rooms[idx]);
-              cnt++;
-          }
-          //that._mapGrid = that.generateGrid(cnt * 2);
-          that.setUp();
+      // Settings
+      if(config.shuffle) { this._shuffle = config.shuffle; }
+      var rooms = config.rooms;
+      for(var idx in rooms) {
+          this._rooms[idx] = new Room(rooms[idx]);
+      }
+      this.setUp();
 
-          that.registerEvents();
-      }).done(function() {
-          if(handler) handler();
-      }).fail(function() {
-          console.log('failed'); 
-          if(handler) handler();
-      });
+      this.registerEvents();
+
   }
 }

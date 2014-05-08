@@ -157,17 +157,13 @@ var Engine = (function () {
         this._mappings = {
             '0001': 'haunted_mansion'
         };
-<<<<<<< HEAD
-        this._world = o.world;
-=======
-        this._version = '0.0.0.1';
         this._onShowHelp = function (e) {
             return _this.onShowHelp(e);
         };
-        var world = this._mappings[o.world || '0001'];
->>>>>>> 8b905df99f54398758b68f9fbd49b27a27273270
+        this._world = o.world;
+        new Parser();
 
-        this.loadConfig();
+        this.loadThemeConfig(this._mappings[o.world]);
     }
     Object.defineProperty(Engine.prototype, "version", {
         get: function () {
@@ -210,27 +206,18 @@ var Engine = (function () {
             req.send();
         });
     };
-    Engine.prototype.loadConfig = function () {
-        var cfg = this.loadFile('config.json');
+    Engine.prototype.loadThemeConfig = function (theme) {
+        var cfg = this.loadFile('environs/' + theme + '/config.json');
         var that = this;
 
         cfg.then(function (response) {
             var json = JSON.parse(response);
-            that.handleConfigLoaded(json);
+            new RoomManager(json);
+            that.injectUI(theme);
         }, function (error) {
-            console.error("Failed!", error);
+            that.throwError('Failed to load theme config: ' + theme);
         });
     };
-
-    Engine.prototype.handleConfigLoaded = function (cfg) {
-        this._version = cfg.version;
-        this._mappings = cfg.mappings;
-
-        console.log('version: ', this._version);
-    };
-    Engine.prototype.loadRooms = function () {
-    };
-
     Engine.prototype.onDataDump = function () {
     };
 
@@ -239,13 +226,12 @@ var Engine = (function () {
     };
 
     Engine.prototype.injectUI = function (theme) {
-        var world = this._mappings[this._world || '0001'];
         var head = document.getElementsByTagName("head")[0];
         var linkNode = document.createElement("link");
         var that = this;
         linkNode.setAttribute('rel', 'stylesheet');
         linkNode.type = "text/css";
-        linkNode.href = '/environs/' + world + '/assets/theme.css';
+        linkNode.href = '/environs/' + theme + '/assets/theme.css';
 
         head.insertBefore(linkNode, head.firstChild);
     };
@@ -597,7 +583,7 @@ var Room = (function () {
     return Room;
 })();
 var RoomManager = (function () {
-    function RoomManager(filename, handler) {
+    function RoomManager(config, handler) {
         var _this = this;
         this._deck = [];
         this._rooms = {};
@@ -605,6 +591,7 @@ var RoomManager = (function () {
         this._startRoom = null;
         this._gridCoord = { x: 0, y: 0, z: 0 };
         this._mapGrid = [];
+        this._shuffle = true;
         this._gotoRoom = function (e) {
             _this.onDirectionSelected(e);
         };
@@ -612,26 +599,17 @@ var RoomManager = (function () {
             _this.onDataDump();
         };
         this._map = new DMap();
-        var that = this;
-        $.getJSON(filename, function (data) {
-            var rooms = data.rooms;
-            var cnt = 0;
-            for (var idx in rooms) {
-                that._rooms[idx] = new Room(rooms[idx]);
-                cnt++;
-            }
 
-            that.setUp();
+        if (config.shuffle) {
+            this._shuffle = config.shuffle;
+        }
+        var rooms = config.rooms;
+        for (var idx in rooms) {
+            this._rooms[idx] = new Room(rooms[idx]);
+        }
+        this.setUp();
 
-            that.registerEvents();
-        }).done(function () {
-            if (handler)
-                handler();
-        }).fail(function () {
-            console.log('failed');
-            if (handler)
-                handler();
-        });
+        this.registerEvents();
     }
     RoomManager.prototype.onDataDump = function () {
         var len = this._mapGrid.length;
@@ -677,7 +655,10 @@ var RoomManager = (function () {
 
     RoomManager.prototype.setUp = function () {
         this.setStartingRoom();
-        this._deck = Utils.shuffle(Object.keys(this._rooms));
+        this._deck = Object.keys(this._rooms);
+        if (this._shuffle) {
+            this._deck = Utils.shuffle(this._deck);
+        }
 
         var idx = this._deck.indexOf(this._startRoom.id);
         this._deck.splice(idx, 1);
@@ -852,6 +833,36 @@ var RoomManager = (function () {
     };
     return RoomManager;
 })();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
+})();
 var Player = (function () {
     function Player() {
         var _this = this;
@@ -890,34 +901,4 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
-})();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
 })();
