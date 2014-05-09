@@ -112,6 +112,30 @@ class RoomManager {
       };
       return polar[dir];
   }
+
+    private searchForRoom(list: any, key: string, val: string) {
+        for(var entry in list) {
+            if (!list.hasOwnProperty(entry)) { continue; }
+            var rm = list[entry];
+            console.log('searching ', rm);
+            // Searh the rm attributes
+            for(var attr in rm) {
+                console.log('scanning ', attr);
+                if(attr === key) {
+                    console.log('match!')
+                    if(typeof(rm[attr]) === 'string') {
+                        if (rm[attr] === val) { return rm; }
+                    } else {
+                        var node = rm[attr];
+                        for (var item in node) {
+                            if(node[item] === val) { return rm; }
+                        }
+                    }
+               }
+            }
+        }
+        return null;
+    }
     /**
     * Executed when a valid direction to travel is selected
     * THis thing is way too large and unwieldy. Need to break it up.
@@ -119,17 +143,7 @@ class RoomManager {
     */
     private onDirectionSelected(dot: string) {
         var target;
-        if(dot === 'up' || dot === 'down') {
-            this._map.newLevel(dot);
-            // if(dot === 'up'
-            // this._map.goUp();
-            // // Search new level for room with down.
-            target = null;
-        } else {
-            target = this._currentRoom.id;
-        }
         // Make sure the active room has that exit available
-        console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
         if(this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
             return;
@@ -163,7 +177,20 @@ class RoomManager {
             if(!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
-            rm = this.selectNewRoom(dot);
+            if(dot === 'up' || dot === 'down') {
+                this._map.newLevel(dot);
+                // if(dot === 'up'
+                // this._map.goUp();
+                // // Search new level for room with down.
+                var lvl = this._map.level;
+                console.log('lvl: ', this._rooms2[lvl]);
+                rm = this.searchForRoom(this._rooms2[lvl], 'exits', this.getPolar(dot));
+                console.log('rm: ', rm);
+                target = null;
+            } else {
+                target = this._currentRoom.id;
+                rm = this.selectNewRoom(dot);
+            }
             if(!rm) { $event.emit('error','Failed to load new room!'); }
 
             // Set up the links from the exiting room to the entering room and visa-versa

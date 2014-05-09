@@ -22,6 +22,24 @@
             "hasMonster":false,
             "hasTreasure":false
          },
+         "stairs":{
+            "name":"Stairs",
+            "id":"stairs",
+            "desc":"Step by step",
+            "exits":[
+               "up",
+               "south",
+               "east"
+            ],
+            "links":{
+
+            },
+            "position":[
+
+            ],
+            "hasMonster":false,
+            "hasTreasure":false
+         },
          "library":{
             "name":"Library",
             "id":"library",
@@ -46,24 +64,6 @@
             "desc":"Standard hallway, nothing special.",
             "exits":[
                "north",
-               "south",
-               "east"
-            ],
-            "links":{
-
-            },
-            "position":[
-
-            ],
-            "hasMonster":false,
-            "hasTreasure":false
-         },
-         "stairs":{
-            "name":"Stairs",
-            "id":"stairs",
-            "desc":"Step by step",
-            "exits":[
-               "up",
                "south",
                "east"
             ],

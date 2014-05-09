@@ -719,17 +719,39 @@ var RoomManager = (function () {
         return polar[dir];
     };
 
+    RoomManager.prototype.searchForRoom = function (list, key, val) {
+        for (var entry in list) {
+            if (!list.hasOwnProperty(entry)) {
+                continue;
+            }
+            var rm = list[entry];
+            console.log('searching ', rm);
+
+            for (var attr in rm) {
+                console.log('scanning ', attr);
+                if (attr === key) {
+                    console.log('match!');
+                    if (typeof (rm[attr]) === 'string') {
+                        if (rm[attr] === val) {
+                            return rm;
+                        }
+                    } else {
+                        var node = rm[attr];
+                        for (var item in node) {
+                            if (node[item] === val) {
+                                return rm;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
     RoomManager.prototype.onDirectionSelected = function (dot) {
         var target;
-        if (dot === 'up' || dot === 'down') {
-            this._map.newLevel(dot);
 
-            target = null;
-        } else {
-            target = this._currentRoom.id;
-        }
-
-        console.log('>>>: ', this._currentRoom.exits.indexOf(dot));
         if (this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
             return;
@@ -762,7 +784,18 @@ var RoomManager = (function () {
             if (!this._deck.length) {
                 $event.emit('nojoy', 'That exit is sealed by some unknown force.');
             }
-            rm = this.selectNewRoom(dot);
+            if (dot === 'up' || dot === 'down') {
+                this._map.newLevel(dot);
+
+                var lvl = this._map.level;
+                console.log('lvl: ', this._rooms2[lvl]);
+                rm = this.searchForRoom(this._rooms2[lvl], 'exits', this.getPolar(dot));
+                console.log('rm: ', rm);
+                target = null;
+            } else {
+                target = this._currentRoom.id;
+                rm = this.selectNewRoom(dot);
+            }
             if (!rm) {
                 $event.emit('error', 'Failed to load new room!');
             }
@@ -869,6 +902,49 @@ var RoomManager = (function () {
     };
     return RoomManager;
 })();
+var Utils = (function () {
+    function Utils() {
+        this.that = 'that';
+        this.test = 'test';
+        this.test2 = 'test2';
+    }
+    Utils.shuffle = function (o) {
+        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
+            ;
+        return o;
+    };
+    Utils.loadFile = function (fn, callback) {
+    };
+    Utils.resetForm = function ($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+    };
+
+    Utils.searchFor = function (arr, key, val) {
+        for (var i = o; i < arr.length; i++) {
+            var o = arr[i];
+            for (var k in o) {
+                if (k === key && o[k] === val) {
+                    return arr[i];
+                }
+            }
+        }
+
+        return null;
+    };
+
+    Utils.proURIDecoder = function (val) {
+        val = val.replace(/\+/g, '%20');
+        var str = val.split("%");
+        var cval = str[0];
+        for (var i = 1; i < str.length; i++) {
+            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
+        }
+
+        return cval;
+    };
+    return Utils;
+})();
 var Player = (function () {
     function Player() {
         var _this = this;
@@ -907,34 +983,4 @@ var Player = (function () {
         this._direction = d;
     };
     return Player;
-})();
-var Utils = (function () {
-    function Utils() {
-        this.that = 'that';
-        this.test = 'test';
-        this.test2 = 'test2';
-    }
-    Utils.shuffle = function (o) {
-        for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x)
-            ;
-        return o;
-    };
-    Utils.loadFile = function (fn, callback) {
-    };
-    Utils.resetForm = function ($form) {
-        $form.find('input:text, input:password, input:file, select, textarea').val('');
-        $form.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-    };
-
-    Utils.proURIDecoder = function (val) {
-        val = val.replace(/\+/g, '%20');
-        var str = val.split("%");
-        var cval = str[0];
-        for (var i = 1; i < str.length; i++) {
-            cval += String.fromCharCode(parseInt(str[i].substring(0, 2), 16)) + str[i].substring(2);
-        }
-
-        return cval;
-    };
-    return Utils;
 })();

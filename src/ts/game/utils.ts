@@ -19,6 +19,17 @@ class Utils {
 	         .removeAttr('checked').removeAttr('selected');
 	}
 
+	static searchFor(arr: any, key: string, val:string) {
+		for (var i = o; i < arr.length; i++) {
+			var o = arr[i];
+			for(var k in o) {
+				if (k === key && o[k] === val) { return arr[i]; }
+			}
+		}
+
+		return null;
+	}
+
 	static proURIDecoder(val) {
 	  val=val.replace(/\+/g, '%20');
 	  var str=val.split("%");
