@@ -80,6 +80,15 @@ $(this).animate({top:"-+40",left:"+=40",opacity:op},500, function(){});
 	private goUp() {}
 	private goDown() {}
 
+	private setupMap() {
+		var map = $('#map');
+		var art = $('<article />').attr('class','wrapper').attr('level',lvl).data('type','level');
+		var cont = $('<div />');
+		art.append(cont);
+		$(map).append(art);
+		this._map = $('#map article[level="'+ lvl+'"] div');
+	}
+
 	private createLevel() {
 		var lvl = this._level;
 		console.log('lvl: ', lvl);
