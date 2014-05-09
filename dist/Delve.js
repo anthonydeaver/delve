@@ -79,13 +79,18 @@ var DMap = (function () {
         return ret;
     };
 
+    DMap.prototype.goUp = function () {
+    };
+    DMap.prototype.goDown = function () {
+    };
+
     DMap.prototype.createLevel = function () {
         var lvl = this._level;
         console.log('lvl: ', lvl);
         var g = $('#map article[level="' + lvl + '"] div');
         if (g.length == 0) {
             var map = $('#map');
-            var art = $('<article />').attr('id', 'wrapper').attr('level', lvl);
+            var art = $('<article />').attr('class', 'wrapper').attr('level', lvl).data('type', 'level');
             var cont = $('<div />');
             art.append(cont);
             $(map).append(art);
@@ -94,23 +99,57 @@ var DMap = (function () {
         this._map = g;
     };
 
-    DMap.prototype.goUp = function () {
-        this._level++;
-        this.createLevel();
-    };
-
-    DMap.prototype.goDown = function () {
-        this._level--;
-        this.createLevel();
-    };
-
-    DMap.prototype.newLevel = function (dir) {
+    DMap.prototype.gotoLevel = function (dir) {
+        var g = $('#map article[level="' + this._level + '"]');
+        var params = { top: '', left: '', opacity: 0.1 };
         if (dir === 'up') {
             this._level++;
-        }
-        if (dir === 'down') {
+            params.top = "+=40";
+            params.left = "-=40";
+        } else if (dir === 'down') {
             this._level--;
+            params.top = "-=40";
+            params.left = "+=40";
         }
+
+        this.createLevel();
+        $('.wrapper').each(function () {
+            var lvl = parseInt($(this).attr('level'), 10);
+
+            if (lvl === this._level)
+                params.opacity = 1;
+            $(this).animate(params, 500, function () {
+            });
+        });
+    };
+    DMap.prototype.gotoLevel2 = function (d) {
+        var lvl = this._level;
+        var params = { top: '', left: '', opacity: 0.1 };
+        if (d === 'up') {
+            this._level++;
+            this.goUp();
+        }
+        if (d === 'down') {
+            this.goDown();
+        }
+
+        this.createLevel();
+    };
+    DMap.prototype.newLevel = function (dir) {
+        var g = $('#map article[level="' + this._level + '"]');
+        var params = { top: '', left: '', opacity: 0.1 };
+        if (dir === 'up') {
+            this._level++;
+            params.top = "+=40";
+            params.left = "-=40";
+        } else if (dir === 'down') {
+            this._level--;
+            params.top = "-=40";
+            params.left = "+=40";
+        }
+
+        $(g).animate(params, 500, function () {
+        });
         this.createLevel();
     };
 
@@ -625,7 +664,6 @@ var RoomManager = (function () {
             _this.onDataDump();
         };
         this.parseConfig(config);
-
         this.registerEvents();
     }
     RoomManager.prototype.registerEvents = function () {
@@ -635,17 +673,9 @@ var RoomManager = (function () {
 
     RoomManager.prototype.onDataDump = function () {
         var len = this._mapGrid.length;
-        console.log('+++++++++++++++++++++++++++++++++');
-        console.log('Map Grid:');
+
         for (var i = 0; i < len; i++) {
-            console.log('arr[' + i + ']: ', this._mapGrid[i].toString());
         }
-        console.log('current grid coords: ', this._gridCoord);
-        console.log('start room: ', this._startRoom.id);
-        console.log('active room: ', this._currentRoom.id);
-        console.log('>>> Deck:', this._deck.toString());
-        console.log('>>> Rooms:', this._rooms2);
-        console.log('+++++++++++++++++++++++++++++++++');
     };
 
     RoomManager.prototype.resetGame = function () {
@@ -665,6 +695,21 @@ var RoomManager = (function () {
         this._mapGrid[len][len] = rm.id;
     };
 
+    RoomManager.prototype.createDeck = function (l) {
+        var arr = [];
+        arr = Object.keys(this._rooms2[l]);
+
+        if (this._shuffle) {
+            arr = Utils.shuffle(arr);
+        }
+        return arr;
+    };
+
+    RoomManager.prototype.removeFromDeck = function (id) {
+        var idx = this._deck.indexOf(id);
+        this._deck.splice(idx, 1);
+    };
+
     RoomManager.prototype.parseConfig = function (cfg) {
         if (cfg.shuffle !== undefined) {
             this._shuffle = cfg.shuffle;
@@ -681,14 +726,9 @@ var RoomManager = (function () {
         this._map = new DMap(cfg.start_level);
 
         this._startRoom = this._rooms2[cfg.start_level][cfg.start_room];
-        this._deck = Object.keys(this._rooms2[cfg.start_level]);
-        console.log('shuffle: ', this._shuffle);
-        if (this._shuffle) {
-            this._deck = Utils.shuffle(this._deck);
-        }
+        this._deck = this.createDeck(cfg.start_level);
 
-        var idx = this._deck.indexOf(cfg.start_room);
-        this._deck.splice(idx, 1);
+        this.removeFromDeck(cfg.start_room);
 
         this.initGrid(this._startRoom);
 
@@ -703,7 +743,6 @@ var RoomManager = (function () {
         for (var x = 0; x < size; x++) {
             arr[x] = new Array(size);
         }
-        console.log('done');
         return arr;
     };
 
@@ -725,12 +764,9 @@ var RoomManager = (function () {
                 continue;
             }
             var rm = list[entry];
-            console.log('searching ', rm);
 
             for (var attr in rm) {
-                console.log('scanning ', attr);
                 if (attr === key) {
-                    console.log('match!');
                     if (typeof (rm[attr]) === 'string') {
                         if (rm[attr] === val) {
                             return rm;
@@ -751,6 +787,7 @@ var RoomManager = (function () {
 
     RoomManager.prototype.onDirectionSelected = function (dot) {
         var target;
+        var deck = this._deck;
 
         if (this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
@@ -782,15 +819,14 @@ var RoomManager = (function () {
             return;
         } else {
             if (!this._deck.length) {
-                $event.emit('nojoy', 'That exit is sealed by some unknown force.');
+                $event.emit('nojoy', 'That exit had been boarded up and is sealed by some unknown force.');
             }
             if (dot === 'up' || dot === 'down') {
-                this._map.newLevel(dot);
-
+                this._map.gotoLevel(dot);
                 var lvl = this._map.level;
-                console.log('lvl: ', this._rooms2[lvl]);
+                this._deck = this.createDeck(lvl);
                 rm = this.searchForRoom(this._rooms2[lvl], 'exits', this.getPolar(dot));
-                console.log('rm: ', rm);
+                this.removeFromDeck(rm.id);
                 target = null;
             } else {
                 target = this._currentRoom.id;
@@ -809,7 +845,6 @@ var RoomManager = (function () {
                 this._currentRoom = rm;
                 this._currentRoom.render();
             } else {
-                console.log('failed to check connections');
             }
         }
     };
@@ -841,20 +876,15 @@ var RoomManager = (function () {
                     break;
             }
             var iRoom = this._rooms[tRoom];
-            console.log('iRoom: ', tRoom);
 
             if (iRoom) {
-                console.log('testing if ' + iRoom.id + ' has an entrance to the ' + testPolar);
                 if (iRoom.hasExit(testPolar)) {
-                    console.log('it does.');
                     if (!rm.hasExit(testDir)) {
-                        console.log('Room has no matching exit, adding one.');
                         rm.exits.push(testDir);
                     }
                     rm.links[testDir] = iRoom;
                     iRoom.links[testPolar] = rm;
                 } else {
-                    console.log('it does not. Removing exit from this room.');
                     var idx = rm.exits.indexOf(testDir);
                     rm.exits.splice(idx, 1);
                 }
@@ -864,7 +894,6 @@ var RoomManager = (function () {
     };
 
     RoomManager.prototype.selectNewRoom = function (e) {
-        console.log('exit: ', e);
         if (!this._deck.length) {
             $event.emit('error', 'no more rooms');
         }
@@ -901,6 +930,45 @@ var RoomManager = (function () {
         return this._startRoom;
     };
     return RoomManager;
+})();
+var Player = (function () {
+    function Player() {
+        var _this = this;
+        this._hp = 0;
+        this._gold = 0;
+        this._skills = [];
+        this._treasure = [];
+        this._onDumpStats = function (e) {
+            return _this.dumpStats();
+        };
+        this._hp = 20;
+        this._gold = 5;
+        this._skills = [];
+        this._treasure = [];
+
+        this.registerEvents();
+    }
+    Player.prototype.getDirection = function () {
+        return this._direction;
+    };
+    Player.prototype.dumpStats = function () {
+        console.log('>>>>>>>');
+        console.log('Player stats:');
+        console.log('HP      : ', this._hp);
+        console.log('GOLD    : ', this._gold);
+        console.log('SKILLS  : ', this._skills);
+        console.log('TREASURE: ', this._treasure);
+        console.log('>>>>>>>');
+    };
+
+    Player.prototype.registerEvents = function () {
+        $event.bind('dump', this._onDumpStats);
+    };
+
+    Player.prototype.move = function (d) {
+        this._direction = d;
+    };
+    return Player;
 })();
 var Utils = (function () {
     function Utils() {
@@ -944,43 +1012,4 @@ var Utils = (function () {
         return cval;
     };
     return Utils;
-})();
-var Player = (function () {
-    function Player() {
-        var _this = this;
-        this._hp = 0;
-        this._gold = 0;
-        this._skills = [];
-        this._treasure = [];
-        this._onDumpStats = function (e) {
-            return _this.dumpStats();
-        };
-        this._hp = 20;
-        this._gold = 5;
-        this._skills = [];
-        this._treasure = [];
-
-        this.registerEvents();
-    }
-    Player.prototype.getDirection = function () {
-        return this._direction;
-    };
-    Player.prototype.dumpStats = function () {
-        console.log('>>>>>>>');
-        console.log('Player stats:');
-        console.log('HP      : ', this._hp);
-        console.log('GOLD    : ', this._gold);
-        console.log('SKILLS  : ', this._skills);
-        console.log('TREASURE: ', this._treasure);
-        console.log('>>>>>>>');
-    };
-
-    Player.prototype.registerEvents = function () {
-        $event.bind('dump', this._onDumpStats);
-    };
-
-    Player.prototype.move = function (d) {
-        this._direction = d;
-    };
-    return Player;
 })();

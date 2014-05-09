@@ -60,6 +60,26 @@ class DMap {
 		return ret;
 	}
 
+
+	/*
+	Level management:
+	1. rooms manager calls for changing levels (this.changeLevel(n))
+		- if n is > than _level, shift everything down and to the left by 40px
+		- if n < than _level, shift everything up and to the right 40px
+
+		$('.wrapper').each(function() { 
+console.log('found'); 
+var lvl = parseInt($(this).attr('level'),10);
+//console.log('n: ', lvl);
+var op = 0.1;
+if(lvl === n) op = 1;
+$(this).animate({top:"-+40",left:"+=40",opacity:op},500, function(){});
+});
+	 */
+
+	private goUp() {}
+	private goDown() {}
+
 	private createLevel() {
 		var lvl = this._level;
 		console.log('lvl: ', lvl);
@@ -67,7 +87,7 @@ class DMap {
 		if(g.length == 0) {
 			// lvl = this._level++
 			var map = $('#map');
-			var art = $('<article />').attr('id','wrapper').attr('level',lvl);
+			var art = $('<article />').attr('class','wrapper').attr('level',lvl).data('type','level');
 			var cont = $('<div />');
 			art.append(cont);
 			$(map).append(art);
@@ -78,19 +98,60 @@ class DMap {
 		//this._level
 	}
 
-	public goUp() {
-		this._level++;
+	public gotoLevel(dir: string) {
+		var g = $('#map article[level="'+ this._level +'"]');
+		var params = {top:'', left: '', opacity: 0.1};
+		if(dir === 'up') { 
+			this._level++; 
+			params.top = "+=40";
+			params.left = "-=40";
+		} else if(dir === 'down') { 
+			this._level--; 
+			params.top = "-=40";
+			params.left = "+=40";
+		}
+		//$(g).css('opacity','0.1');
+		//$(g).animate(params, 500, function(){});
+		
 		this.createLevel();
+		$('.wrapper').each(function() { 
+			//console.log('found'); 
+			var lvl = parseInt($(this).attr('level'),10);
+			//console.log('n: ', lvl);
+			//var op = 0.1;
+			if(lvl === this._level) params.opacity = 1;
+			$(this).animate(params,500, function(){});
+		});
 	}
+	public gotoLevel2(d: string) {
+		var lvl = this._level;
+		var params = {top:'', left: '', opacity: 0.1};
+		if(d === 'up') {
+			this._level++;
+			this.goUp();
+		}
+		if(d === 'down') {
+			this.goDown();
+		}
 
-	public goDown() {
-		this._level--;
 		this.createLevel();
-	}
 
+
+	}
 	public newLevel(dir) {
-		if(dir === 'up') { this._level++; }
-		if(dir === 'down') { this._level--; }
+		var g = $('#map article[level="'+ this._level +'"]');
+		var params = {top:'', left: '', opacity: 0.1};
+		if(dir === 'up') { 
+			this._level++; 
+			params.top = "+=40";
+			params.left = "-=40";
+		} else if(dir === 'down') { 
+			this._level--; 
+			params.top = "-=40";
+			params.left = "+=40";
+		}
+		//$(g).css('opacity','0.1');
+		$(g).animate(params, 500, function(){});
 		this.createLevel();
 	}
 

@@ -22,17 +22,17 @@ class RoomManager {
 
   private onDataDump() {
       var len = this._mapGrid.length;
-      console.log('+++++++++++++++++++++++++++++++++');
-      console.log('Map Grid:');
+      // console.log('+++++++++++++++++++++++++++++++++');
+      // console.log('Map Grid:');
       for(var i = 0; i < len; i++) {
-          console.log('arr['+i+']: ', this._mapGrid[i].toString());
+          // console.log('arr['+i+']: ', this._mapGrid[i].toString());
       }
-      console.log('current grid coords: ', this._gridCoord);
-      console.log('start room: ', this._startRoom.id);
-      console.log('active room: ', this._currentRoom.id);
-      console.log('>>> Deck:', this._deck.toString());
-      console.log('>>> Rooms:', this._rooms2);
-      console.log('+++++++++++++++++++++++++++++++++');
+      // console.log('current grid coords: ', this._gridCoord);
+      // console.log('start room: ', this._startRoom.id);
+      // console.log('active room: ', this._currentRoom.id);
+      // console.log('>>> Deck:', this._deck.toString());
+      // console.log('>>> Rooms:', this._rooms2);
+      // console.log('+++++++++++++++++++++++++++++++++');
   }
 
     private resetGame() {
@@ -58,6 +58,21 @@ class RoomManager {
         this._mapGrid[len][len] = rm.id;
     }
 
+    private createDeck(l: number) {
+        var arr = [];
+        arr = Object.keys(this._rooms2[l]);
+        // console.log('shuffle: ', this._shuffle);
+        if(this._shuffle) {
+            arr = Utils.shuffle(arr);
+        }
+        return arr;
+    }
+
+    private removeFromDeck(id: string) {
+        var idx = this._deck.indexOf(id);
+        this._deck.splice(idx, 1);
+    }
+
     private parseConfig(cfg) {
         if(cfg.shuffle !== undefined) { this._shuffle = cfg.shuffle; }
 
@@ -72,15 +87,10 @@ class RoomManager {
         this._map = new DMap(cfg.start_level);
 
         this._startRoom = this._rooms2[cfg.start_level][cfg.start_room];
-        this._deck = Object.keys(this._rooms2[cfg.start_level]);
-        console.log('shuffle: ', this._shuffle);
-        if(this._shuffle) {
-            this._deck = Utils.shuffle(this._deck);
-        }
+        this._deck = this.createDeck(cfg.start_level);
 
         // Remove the starting room from the '_deck' but not the _rooms
-        var idx = this._deck.indexOf(cfg.start_room);
-        this._deck.splice(idx, 1);
+        this.removeFromDeck(cfg.start_room);
 
         this.initGrid(this._startRoom);
         // insert into map
@@ -97,7 +107,6 @@ class RoomManager {
       for(var x = 0; x < size; x++) {
           arr[x] = new Array(size);
       }
-      console.log('done');
       return arr;
   }
 
@@ -117,12 +126,12 @@ class RoomManager {
         for(var entry in list) {
             if (!list.hasOwnProperty(entry)) { continue; }
             var rm = list[entry];
-            console.log('searching ', rm);
+            // // console.log('searching ', rm);
             // Searh the rm attributes
             for(var attr in rm) {
-                console.log('scanning ', attr);
+                // // console.log('scanning ', attr);
                 if(attr === key) {
-                    console.log('match!')
+                    // // console.log('match!')
                     if(typeof(rm[attr]) === 'string') {
                         if (rm[attr] === val) { return rm; }
                     } else {
@@ -143,6 +152,7 @@ class RoomManager {
     */
     private onDirectionSelected(dot: string) {
         var target;
+        var deck = this._deck;
         // Make sure the active room has that exit available
         if(this._currentRoom.exits.indexOf(dot) === -1) {
             $event.emit('nojoy', "You can't go that way.");
@@ -175,17 +185,14 @@ class RoomManager {
             return;
         } else {
             if(!this._deck.length) {
-                $event.emit('nojoy', 'That exit is sealed by some unknown force.');
+                $event.emit('nojoy', 'That exit had been boarded up and is sealed by some unknown force.');
             }
             if(dot === 'up' || dot === 'down') {
-                this._map.newLevel(dot);
-                // if(dot === 'up'
-                // this._map.goUp();
-                // // Search new level for room with down.
+                this._map.gotoLevel(dot);
                 var lvl = this._map.level;
-                console.log('lvl: ', this._rooms2[lvl]);
+                this._deck = this.createDeck(lvl);
                 rm = this.searchForRoom(this._rooms2[lvl], 'exits', this.getPolar(dot));
-                console.log('rm: ', rm);
+                this.removeFromDeck(rm.id);
                 target = null;
             } else {
                 target = this._currentRoom.id;
@@ -204,7 +211,7 @@ class RoomManager {
               this._currentRoom = rm;
               this._currentRoom.render();
             } else {
-              console.log('failed to check connections')
+              //// console.log('failed to check connections')
             }
         }
     }
@@ -217,7 +224,7 @@ class RoomManager {
    * @param {object} rm Room to scan
    */
   private scanGrid(rm: any, dot: string) {
-    // console.log('scanning around ', rm.id);
+    // // console.log('scanning around ', rm.id);
     /*
         - look at room in all 4 adjacent locations
         - if adjacent room doesn't have a link, remove this rooms cooresponding exit. Or,
@@ -232,7 +239,7 @@ class RoomManager {
         var testDir = dirs[i];
         var testPolar =this.getPolar(testDir);
         var tRoom = 'xxx';
-        // console.log('testing: ', testDir);
+        // // console.log('testing: ', testDir);
         if(testDir == dot) { continue; } // skip the incoming exit, we know about that one.
         switch(testDir) {
             case 'north':
@@ -251,22 +258,22 @@ class RoomManager {
                 break;
         }
         var iRoom: Room = this._rooms[tRoom];
-        console.log('iRoom: ', tRoom);
+        // console.log('iRoom: ', tRoom);
 
 
         if(iRoom) {
             // Test if rm has an exit in the opposite of the testing direction
-            console.log('testing if ' + iRoom.id + ' has an entrance to the '+ testPolar);
+            // console.log('testing if ' + iRoom.id + ' has an entrance to the '+ testPolar);
             if(iRoom.hasExit(testPolar)) {
-                console.log('it does.');
+                // console.log('it does.');
                 if(!rm.hasExit(testDir)) {
-                    console.log('Room has no matching exit, adding one.');
+                    // console.log('Room has no matching exit, adding one.');
                     rm.exits.push(testDir);
                 }
                 rm.links[testDir] = iRoom;
                 iRoom.links[testPolar] = rm;
             } else {
-                console.log('it does not. Removing exit from this room.');
+                // console.log('it does not. Removing exit from this room.');
                 var idx = rm.exits.indexOf(testDir);
                 rm.exits.splice(idx, 1);
             }
@@ -280,7 +287,7 @@ class RoomManager {
    * @param {string} e [description]
    */
   private selectNewRoom(e: string) {
-    console.log('exit: ', e);
+    // console.log('exit: ', e);
       if(!this._deck.length) {
           $event.emit('error', 'no more rooms');
       }
@@ -321,37 +328,11 @@ class RoomManager {
   public getStartRoom() {
       return this._startRoom;
   }
-
-  // constructor(filename, handler?: any) {
-  //     // The handler callback is strictly for unit testing
-  //     this._map = new DMap();
-  //     var that = this;
-  //     $.getJSON(filename, function(data) {
-  //         var rooms = data.rooms;
-  //         var cnt = 0;
-  //         for(var idx in rooms) {
-  //             that._rooms[idx] = new Room(rooms[idx]);
-  //             cnt++;
-  //         }
-  //         //that._mapGrid = that.generateGrid(cnt * 2);
-  //         that.setUp();
-
-  //         that.registerEvents();
-  //     }).done(function() {
-  //         if(handler) handler();
-  //     }).fail(function() {
-  //         console.log('failed'); 
-  //         if(handler) handler();
-  //     });
-  // }
   
   constructor(config, handler?: any) {
-      // The handler callback is strictly for unit testing
-      // Settings
-      this.parseConfig(config);
-      
-      //this.setUp();
 
+      // The handler callback is strictly for unit testing
+      this.parseConfig(config);
       this.registerEvents();
 
   }
