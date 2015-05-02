@@ -1,1 +1,5 @@
 **/Delve.js
+node_modules
+.idea
+*/node_modules
+archives
