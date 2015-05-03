@@ -6,7 +6,7 @@ class Engine implements IGame{
   private _mappings: any = {
     '0001': 'haunted_mansion'
   };
-  // private _config;
+help  // private _config;
   // private _rooms: any;
   private _world: string;
   // private _activeRoom: string;
