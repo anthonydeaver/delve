@@ -45,8 +45,8 @@ module.exports = function(grunt) {
         separator: ';'
       },
       dist: {
-        src: ['src/js/app/*.js'],
-        dest: 'dist/<%= pkg.name %>.js'
+        src: ['src/Engine.js', 'src/js/**'],
+        dest: 'dist/Delve2.js'
       }
     },
     uglify: {
@@ -80,7 +80,7 @@ module.exports = function(grunt) {
           {
             expand: true,
             cwd: "src/",
-            src: ["index.html", "assets/**", "environs/**", "js/libs/*.js", "!js/editor/*.js"],
+            src: ["index.html", "assets/**", "environs/**", "js/**", "!js/editor/*.js"],
             dest: "dist/",
             flatten: false,
             filter: "isFile"
@@ -89,8 +89,8 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: ['<%= jshint.files %>', '<%= typescript.base.src %>', 'src/css/delve.less'],
-      tasks: ['less','typescript']
+      files: ['src/index.html', '<%= jshint.files %>', 'src/Engine.js', 'src/js/**', 'src/css/delve.less'],
+      tasks: ['less','copy']
     }
   });
 
