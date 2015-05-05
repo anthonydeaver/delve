@@ -1,3 +1,4 @@
+               "east"
 {
    "start_room" : "foyer",
    "start_level" : 0,
@@ -12,24 +13,6 @@
                "north",
                "east",
                "west"
-            ],
-            "links":{
-
-            },
-            "position":[
-
-            ],
-            "hasMonster":false,
-            "hasTreasure":false
-         },
-         "stairs":{
-            "name":"Stairs",
-            "id":"stairs",
-            "desc":"Step by step",
-            "exits":[
-               "up",
-               "south",
-               "east"
             ],
             "links":{
 
@@ -66,6 +49,22 @@
                "north",
                "south",
                "east"
+            ],
+            "links":{
+
+            },
+            "position":[
+
+            ],
+            "hasMonster":false,
+            "hasTreasure":false
+         },
+         "stairs":{
+            "name":"Stairs",
+            "id":"stairs",
+            "desc":"Step by step",
+            "exits":[
+               "up"
             ],
             "links":{
 

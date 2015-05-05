@@ -3,8 +3,6 @@
 		<title>Delve</title>
 		<!-- <link rel="stylesheet/less" type="text/less" href="css/styles.less" /> -->
 		<link rel="stylesheet" type="text/css" href="css/delve.css" />
-		<script src="http://code.jquery.com/jquery-2.1.0.min.js" type="text/javascript"></script>
-		<script src="Delve.js" type="text/javascript"></script>
 	</head>
 	<body>
 <!-- 		<section id="selector">
@@ -16,11 +14,14 @@
  -->		<section id="game">
 			<div id="leftCol">
 				<section id="display">
-					<header></header>
-					<article id="desc"></article>
+					<header>{{name}}</header>
+					<article id="desc">{{desc}}</article>
 					<article id="exits">
 						Visible exits are:
 						<ul>
+						{{#each exits}}
+							<li>{{this}}</li>
+						{{/each}}
 						</ul>
 					</article>
 				</section>
@@ -38,24 +39,15 @@
 			<section id="map" class="draggable">
 				<header>Map</header>
 			</section>
-			<section id="nav">
-				<header>controls</header>
-					<div id="BTN_MAP_TOGGLE" class="button">Open Map</div>
-			</section>
-			<textarea id="console">
-			</textarea>
 		</section>
-		<script>
-			$('li').on('click', function() {
-				var world = $(this).data('world');
-				$('#selector').hide();
-				$('#game').show();
-				var $event = new Events();
-				var $delve = new Engine({world: world});
-			});
-				var $event = new Events();
-				var $delve = new Engine({world: '0001'});
-		</script>
+		<script src="/js/libs/jquery.js" type="text/javascript"></script>
+		<script src="Engine.js" type="text/javascript"></script>
+		<script src="js/libs/handlebars.js" type="text/javascript"></script>
+		<script src="js/libs/underscore.js" type="text/javascript"></script>
+		<script src="js/libs/backbone.js" type="text/javascript"></script>
+		<script src="js/Room.js" type="text/javascript"></script>
+		<script src="js/Module.js" type="text/javascript"></script>
+		<script src="js/UIModule.js" type="text/javascript"></script>
 	</body>
 
 	</html>

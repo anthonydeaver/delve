@@ -10,6 +10,7 @@ class Room {
 	private _start: boolean = false;
     private _position = {};
 
+    /*
 	get name() {
 		return this._name;
 	}
@@ -36,6 +37,12 @@ class Room {
 
     get start() {
         return this._start;
+    }
+    */
+    get(prop) {
+        var id = '_' + prop;
+        if(this[id]) return this[id];
+        return false
     }
 
     hasExit(exit) {
